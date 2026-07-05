@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body{margin:0;background:#04070b;overflow:hidden;}
+    input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:20px;margin:0;padding:0;width:100%;cursor:ew-resize;}
+    input[type=range]::-webkit-slider-runnable-track{height:3px;background:#16232f;border-radius:2px;}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:11px;height:11px;border-radius:1px;background:#3fd9ff;border:1px solid #0a3a4a;margin-top:-4px;}
+    input[type=range]::-moz-range-track{height:3px;background:#16232f;}
+    input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:1px;background:#3fd9ff;border:1px solid #0a3a4a;}
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-thumb{background:#152230;border-radius:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    @keyframes ehrblink{0%,55%{opacity:1}56%,100%{opacity:0}}
+    @keyframes ehrpulse{0%,100%{opacity:1}50%{opacity:.3}}
+  </style>
+  <script src="ehr-plots.js"></script>
+  <script src="ehr-engine.js"></script>
+  <script src="ehr-dust.js"></script>
+  <script src="ehr-view3d.js"></script>
+</helmet>
+
+<div style="height:100vh;display:flex;flex-direction:column;background:#04070b;color:#c6d4e2;font-family:'IBM Plex Mono',monospace;font-size:12px;overflow:hidden;user-select:none;">
+
+  <!-- ============ TOP BAR ============ -->
+  <div data-screen-label="Top bar" style="height:54px;flex:none;display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid #121e2b;background:#070c12;">
+    <div style="display:flex;align-items:baseline;gap:8px;">
+      <span style="font-size:17px;font-weight:700;letter-spacing:3px;color:#3fd9ff;">EHR</span>
+      <span style="font-size:10px;letter-spacing:1.5px;color:#5b7186;">HELIX REACTOR · DIGITAL TWIN v0.1</span>
+    </div>
+    <div style="width:1px;height:24px;background:#16232f;"></div>
+    <div style="display:flex;gap:6px;">
+      <button data-tab="sim" onClick="{{ onTab }}" style="{{ tabSimStyle }}">SIMULATE</button>
+      <button data-tab="diag" onClick="{{ onTab }}" style="{{ tabDiagStyle }}">DIAGNOSTICS</button>
+      <button data-tab="plots" onClick="{{ onTab }}" style="{{ tabPlotsStyle }}">PLOTS</button>
+      <button data-tab="guide" onClick="{{ onTab }}" style="{{ tabGuideStyle }}">GUIDE</button>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:10px;letter-spacing:1.5px;color:#5b7186;">MATCH M</span>
+      <span style="font-size:21px;font-weight:700;color:{{ mColor }};min-width:74px;text-align:right;">{{ mText }}</span>
+      <div style="position:relative;width:120px;height:4px;background:#16232f;border-radius:2px;">
+        <div style="position:absolute;left:50%;top:-3px;width:1px;height:10px;background:#3a536b;"></div>
+        <div style="position:absolute;top:-3px;width:3px;height:10px;border-radius:1px;background:{{ mColor }};left:{{ mBarLeft }};"></div>
+      </div>
+      <span style="font-size:10px;color:#5b7186;">CPL <span style="color:#c6d4e2;">{{ couplingText }}</span></span>
+    </div>
+    <div style="width:1px;height:24px;background:#16232f;"></div>
+    <div style="display:flex;gap:6px;">
+      <button onClick="{{ onRun }}" style="{{ runStyle }}">{{ runLabel }}</button>
+      <button onClick="{{ onReset }}" style="padding:7px 12px;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1.5px;cursor:pointer;border:1px solid #1c2c3c;background:#0d1620;color:#8aa0b5;" style-hover="border-color:#2c4258;color:#c6d4e2;">RESET</button>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ROW ============ -->
+  <div style="flex:1;display:flex;min-height:0;">
+
+    <!-- ---- CONTROL RAIL ---- -->
+    <div data-screen-label="Control rail" style="width:266px;flex:none;overflow-y:auto;border-right:1px solid #121e2b;background:#060b11;padding:12px 14px 24px;">
+
+      <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#c6d4e2;margin:6px 0 8px;">PRESETS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px;">
+        <sc-for list="{{ presets }}" as="pr" hint-placeholder-count="5">
+          <button data-preset="{{ pr.key }}" onClick="{{ onPreset }}" style="{{ pr.style }}">{{ pr.label }}</button>
+        </sc-for>
+      </div>
+      <div style="font-size:9px;line-height:1.5;color:#43586c;margin-bottom:2px;">ONE-CLICK OPERATING POINTS · JUMPS TO THE RELEVANT SCREEN</div>
+
+      <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#ffb454;margin:16px 0 10px;">RF &amp; ANTENNA</div>
+      <sc-for list="{{ rfControls }}" as="c" hint-placeholder-count="3">
+        <div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
+            <span style="font-size:10px;letter-spacing:1px;color:#8aa0b5;">{{ c.label }}</span>
+            <span style="font-size:11px;color:#3fd9ff;">{{ c.valueText }}</span>
+          </div>
+          <input type="range" min="{{ c.min }}" max="{{ c.max }}" step="{{ c.step }}" value="{{ c.value }}" data-k="{{ c.key }}" onInput="{{ onSlider }}">
+        </div>
+      </sc-for>
+      <div style="margin-bottom:14px;">
+        <div style="font-size:10px;letter-spacing:1px;color:#8aa0b5;margin-bottom:4px;">AZIMUTHAL MODE m</div>
+        <div style="display:flex;gap:4px;">
+          <button data-m="1" onClick="{{ onMMode }}" style="{{ m1Style }}">m=1</button>
+          <button data-m="2" onClick="{{ onMMode }}" style="{{ m2Style }}">m=2</button>
+          <button data-m="3" onClick="{{ onMMode }}" style="{{ m3Style }}">m=3</button>
+        </div>
+      </div>
+
+      <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3fd9ff;margin:16px 0 10px;">MAGNETIC FIELD</div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;letter-spacing:1px;color:#8aa0b5;margin-bottom:4px;">FIELD MODEL</div>
+        <div style="display:flex;gap:4px;">
+          <button data-fm="screw" onClick="{{ onFieldModel }}" style="{{ fmScrewStyle }}">SCREW PINCH</button>
+          <button data-fm="beltrami" onClick="{{ onFieldModel }}" style="{{ fmBeltStyle }}">BELTRAMI</button>
+        </div>
+      </div>
+      <sc-for list="{{ magControls }}" as="c" hint-placeholder-count="2">
+        <div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
+            <span style="font-size:10px;letter-spacing:1px;color:#8aa0b5;">{{ c.label }}</span>
+            <span style="font-size:11px;color:#3fd9ff;">{{ c.valueText }}</span>
+          </div>
+          <input type="range" min="{{ c.min }}" max="{{ c.max }}" step="{{ c.step }}" value="{{ c.value }}" data-k="{{ c.key }}" onInput="{{ onSlider }}">
+        </div>
+      </sc-for>
+
+      <div style="border:1px solid #14222f;background:#081019;padding:8px 10px;margin:12px 0 4px;display:grid;grid-template-columns:1fr auto;row-gap:3px;font-size:10px;">
+        <span style="color:#5b7186;">M = (k_θ/k_z)·(B_z/B_θ)</span><span style="color:{{ mColor }};font-weight:600;">{{ mText }}</span>
+        <span style="color:#5b7186;">COUPLING</span><span style="color:#c6d4e2;">{{ couplingText }}</span>
+        <span style="color:#5b7186;">REFL PWR</span><span style="color:{{ reflColor }};">{{ reflText }}</span>
+        <span style="color:#5b7186;">L_p @ 0.7R</span><span style="color:#c6d4e2;">{{ pitchText }}</span>
+        <span style="color:#5b7186;">f_RES (WAVE)</span><span style="color:#c6d4e2;">{{ fResText }}</span>
+      </div>
+
+      <div style="margin:10px 0 4px;">
+        <div style="font-size:10px;letter-spacing:1px;color:#8aa0b5;margin-bottom:4px;">COUPLING MODEL</div>
+        <div style="display:flex;gap:4px;">
+          <button data-mode="kernel" onClick="{{ onCplMode }}" style="{{ cplKernelStyle }}">KERNEL</button>
+          <button data-mode="emergent" onClick="{{ onCplMode }}" style="{{ cplEmergentStyle }}">EMERGENT</button>
+          <button data-mode="wave" onClick="{{ onCplMode }}" style="{{ cplWaveStyle }}">WAVE</button>
+        </div>
+        <div style="font-size:9px;line-height:1.55;color:#43586c;margin-top:4px;">{{ cplModeNote }}</div>
+      </div>
+
+      <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#5cf2a6;margin:16px 0 10px;">GAS &amp; ACOUSTICS</div>
+      <sc-for list="{{ gasControls }}" as="c" hint-placeholder-count="4">
+        <div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
+            <span style="font-size:10px;letter-spacing:1px;color:#8aa0b5;">{{ c.label }}</span>
+            <span style="font-size:11px;color:#3fd9ff;">{{ c.valueText }}</span>
+          </div>
+          <input type="range" min="{{ c.min }}" max="{{ c.max }}" step="{{ c.step }}" value="{{ c.value }}" data-k="{{ c.key }}" onInput="{{ onSlider }}">
+        </div>
+      </sc-for>
+
+      <div style="margin-bottom:4px;">
+        <div style="font-size:10px;letter-spacing:1px;color:#8aa0b5;margin-bottom:4px;">ACOUSTIC MODE</div>
+        <div style="display:flex;gap:4px;">
+          <button data-ac="traveling" onClick="{{ onAcMode }}" style="{{ acTravStyle }}">TRAVELING</button>
+          <button data-ac="standing" onClick="{{ onAcMode }}" style="{{ acStandStyle }}">STANDING</button>
+        </div>
+      </div>
+
+      <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#ff8f6b;margin:16px 0 10px;">WAFER &amp; DUST</div>
+      <sc-for list="{{ dustControls }}" as="c" hint-placeholder-count="4">
+        <div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
+            <span style="font-size:10px;letter-spacing:1px;color:#8aa0b5;">{{ c.label }}</span>
+            <span style="font-size:11px;color:#3fd9ff;">{{ c.valueText }}</span>
+          </div>
+          <input type="range" min="{{ c.min }}" max="{{ c.max }}" step="{{ c.step }}" value="{{ c.value }}" data-k="{{ c.key }}" onInput="{{ onSlider }}">
+        </div>
+      </sc-for>
+      <div style="font-size:9px;line-height:1.55;color:#43586c;margin:2px 0 4px;">DUST: ION DRAG FROM LIVE ∇n_i · YUKAWA PAIRS · SHEATH LEVITATION</div>
+
+      <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#8aa0b5;margin:16px 0 10px;">DISPLAY LAYERS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <sc-for list="{{ chips }}" as="ch" hint-placeholder-count="5">
+          <button data-layer="{{ ch.key }}" onClick="{{ onChip }}" style="{{ ch.style }}">{{ ch.label }}</button>
+        </sc-for>
+      </div>
+
+      <div style="margin-top:18px;padding-top:10px;border-top:1px solid #101a26;font-size:9px;line-height:1.6;color:#43586c;">
+        REDUCED MODEL — KERNEL encodes the M≈1 hypothesis as a prior; EMERGENT derives coupling from k̂·B̂ alignment + transit coherence; WAVE adds the J₍m₋₁₎ eigenmode + helicon dispersion (n̄ locks to f). Boris pusher · MC collisions · 15.8 eV ionization · chuck absorption at z=+2 · dust with ion drag + Yukawa. Normalized units.
+      </div>
+    </div>
+
+    <!-- ---- CENTER PANES ---- -->
+    <div style="flex:1;position:relative;min-width:0;background:#04070b;">
+
+      <!-- SIMULATE -->
+      <div data-screen-label="Simulate" style="position:absolute;inset:0;display:{{ simDisplay }};">
+        <canvas ref="{{ c3d }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;"></canvas>
+
+        <div style="position:absolute;top:12px;right:12px;width:212px;background:rgba(6,11,17,0.85);border:1px solid #14222f;padding:10px 12px;backdrop-filter:blur(6px);">
+          <div onClick="{{ onHudToggle }}" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;">
+            <div style="font-size:9px;letter-spacing:2px;color:#5b7186;">LIVE DIAGNOSTICS</div>
+            <div style="font-size:9px;color:#5b7186;">{{ hudChevron }}</div>
+          </div>
+          <div style="display:{{ hudBodyDisplay }};margin-top:8px;">
+            <sc-for list="{{ hudRows }}" as="row" hint-placeholder-count="8">
+              <div style="display:flex;justify-content:space-between;font-size:11px;line-height:1.75;">
+                <span style="color:#5b7186;">{{ row.label }}</span>
+                <span style="color:{{ row.color }};">{{ row.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="position:absolute;left:12px;bottom:12px;display:flex;flex-direction:column;gap:5px;">
+          <div style="font-size:9px;letter-spacing:1.5px;color:#5b7186;">n_e TRANSFER · α ∝ n²</div>
+          <div style="width:170px;height:7px;background:linear-gradient(90deg,#06103c,#1e6dff,#19d5ff,#3dff88,#ffe94a,#ffffff);border:1px solid #14222f;"></div>
+          <div style="display:flex;justify-content:space-between;width:170px;font-size:9px;color:#43586c;"><span>0</span><span>n_max</span></div>
+        </div>
+
+        <div style="position:absolute;left:12px;top:12px;font-size:10px;color:#ffb454;background:rgba(6,11,17,0.8);border:1px solid #2a2415;padding:4px 8px;display:{{ webglNoteDisplay }};">{{ webglNote }}</div>
+
+        <div style="position:absolute;inset:0;display:{{ bootDisplay }};align-items:center;justify-content:center;background:#04070b;z-index:5;">
+          <div style="text-align:center;">
+            <div style="font-size:15px;letter-spacing:4px;color:#3fd9ff;margin-bottom:8px;">EHR // {{ bootMsg }}<span style="display:inline-block;width:9px;height:15px;background:#3fd9ff;margin-left:6px;vertical-align:-2px;animation:ehrblink 1s steps(1) infinite;"></span></div>
+            <div style="font-size:10px;letter-spacing:2px;color:#43586c;">ELECTROMAGNETIC HELIX REACTOR · DIGITAL TWIN</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIAGNOSTICS -->
+      <div data-screen-label="Diagnostics" style="position:absolute;inset:0;display:{{ diagDisplay }};grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;padding:12px;">
+
+        <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:10px 12px;">
+          <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:8px;">VIRTUAL LANGMUIR PROBES</div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
+            <div>
+              <div style="font-size:9px;letter-spacing:1px;color:#5b7186;">R_ec = n_edge / n_core</div>
+              <div style="font-size:26px;font-weight:700;color:{{ recColor }};">{{ recText }}</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:9px;">
+                <span style="width:74px;color:#5b7186;">CORE r&lt;0.3R</span>
+                <div style="flex:1;height:6px;background:#101a26;"><div style="height:6px;background:#3fd9ff;width:{{ coreBarW }};"></div></div>
+                <span style="width:38px;text-align:right;color:#c6d4e2;">{{ nCoreText }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:9px;">
+                <span style="width:74px;color:#5b7186;">EDGE r&gt;0.8R</span>
+                <div style="flex:1;height:6px;background:#101a26;"><div style="height:6px;background:#ffb454;width:{{ edgeBarW }};"></div></div>
+                <span style="width:38px;text-align:right;color:#c6d4e2;">{{ nEdgeText }}</span>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;position:relative;min-height:0;">
+            <canvas ref="{{ radialC }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+          </div>
+          <div style="font-size:9px;color:#43586c;margin-top:4px;">RADIAL PROFILE n(r/R)</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:10px 12px;">
+          <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:8px;">TURBULENCE PROXY</div>
+          <div style="display:flex;gap:22px;margin-bottom:6px;">
+            <div>
+              <div style="font-size:9px;color:#5b7186;">δn/n (10 s window)</div>
+              <div style="font-size:26px;font-weight:700;color:{{ dnnColor }};">{{ dnnText }}</div>
+            </div>
+            <div style="padding-top:3px;">
+              <div style="font-size:9px;color:#5b7186;line-height:1.7;">MEAN n̄ <span style="color:#c6d4e2;">{{ nMeanText }}</span></div>
+              <div style="font-size:9px;color:#5b7186;line-height:1.7;">SAMPLE 10 Hz · HANN PSD</div>
+            </div>
+          </div>
+          <div style="height:56px;position:relative;flex:none;">
+            <canvas ref="{{ trendC }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+          </div>
+          <div style="flex:1;position:relative;min-height:0;margin-top:4px;">
+            <canvas ref="{{ psdC }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:10px 12px;">
+          <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:8px;">B-DOT PROBE ARRAY · 8× @ r=0.75R</div>
+          <div style="display:flex;gap:18px;align-items:baseline;margin-bottom:4px;">
+            <div>
+              <div style="font-size:9px;color:#5b7186;">DETECTED MODE</div>
+              <div style="font-size:26px;font-weight:700;color:{{ mFitColor }};">m={{ mFitText }}</div>
+            </div>
+            <div style="font-size:9px;color:#5b7186;line-height:1.7;">SNR <span style="color:#c6d4e2;">{{ mSnrText }}</span><br>DRIVE m={{ mDriveText }}</div>
+          </div>
+          <div style="flex:1;position:relative;min-height:0;"><canvas ref="{{ bdotC }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas></div>
+          <div style="font-size:9px;color:#43586c;margin-top:4px;">AZIMUTHAL WATERFALL · MODE FIT VIA DFT</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:10px 12px;">
+          <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:6px;">SYNTHETIC GPI — I(x,y) = ∫ n_e dz</div>
+          <div style="flex:1;position:relative;min-height:0;">
+            <canvas ref="{{ gpiC }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+            <div style="width:110px;height:6px;background:linear-gradient(90deg,#040212,#2c105c,#711f81,#b63679,#ee605e,#fdae32,#fcffa4);border:1px solid #14222f;"></div>
+            <span style="font-size:9px;color:#43586c;">FALSE COLOR · LINE-INTEGRATED</span>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:10px 12px;">
+          <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:6px;">AXIAL STRUCTURE</div>
+          <div style="flex:1;position:relative;min-height:0;">
+            <canvas ref="{{ axialC }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:6px;font-size:9px;color:#43586c;">
+            <span><span style="color:#3fd9ff;">▬</span> n_e(z)</span>
+            <span><span style="color:#ffb454;">▪▪</span> n_n(z) acoustic drive (scaled)</span>
+            <span>r = <span style="color:#c6d4e2;">{{ acCorrText }}</span></span>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:10px 12px;">
+          <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:8px;">WAFER CHUCK &amp; DUST</div>
+          <div style="display:grid;grid-template-columns:1fr auto;row-gap:2px;font-size:10px;margin-bottom:8px;">
+            <span style="color:#5b7186;">ION FLUX → CHUCK</span><span style="color:#c6d4e2;">{{ chuckFluxText }}</span>
+            <span style="color:#5b7186;">⟨E_ion⟩ @ WAFER</span><span style="color:#c6d4e2;">{{ ionEwText }}</span>
+            <span style="color:#5b7186;">ETCH NON-UNIF σ/μ</span><span style="color:{{ unifColor }};">{{ unifText }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding-top:6px;border-top:1px solid #101a26;margin-bottom:4px;">
+            <span style="font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 8px;border:1px solid {{ dustStateColor }};color:{{ dustStateColor }};">{{ dustState }}</span>
+            <span style="font-size:9px;color:#5b7186;">Γ <span style="color:#c6d4e2;">{{ dustGammaText }}</span></span>
+            <span style="font-size:9px;color:#5b7186;">κ <span style="color:#c6d4e2;">{{ dustKappaText }}</span></span>
+            <span style="font-size:9px;color:#5b7186;">a <span style="color:#c6d4e2;">{{ dustSpacingText }}</span></span>
+          </div>
+          <div style="flex:1;position:relative;min-height:0;"><canvas ref="{{ gofrC }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas></div>
+          <div style="font-size:9px;color:#43586c;margin-top:4px;">PAIR CORRELATION g(r) · Γ&gt;170 ⇒ CRYSTAL</div>
+        </div>
+      </div>
+
+      <!-- PLOTS -->
+      <div data-screen-label="Plots" style="position:absolute;inset:0;display:{{ plotsDisplay }};flex-direction:column;gap:10px;padding:12px;">
+        <div style="flex:none;display:flex;align-items:center;gap:12px;background:#070d14;border:1px solid #121e2b;padding:9px 12px;">
+          <div style="display:flex;gap:4px;">
+            <button data-var="M" onClick="{{ onSweepVar }}" style="{{ svMStyle }}">M</button>
+            <button data-var="freq" onClick="{{ onSweepVar }}" style="{{ svFStyle }}">f</button>
+          </div>
+          <button onClick="{{ onSweep }}" style="{{ sweepBtnStyle }}">{{ sweepBtnLabel }}</button>
+          <div style="width:170px;height:5px;background:#101a26;"><div style="height:5px;background:#5cf2a6;width:{{ sweepProgW }};"></div></div>
+          <span style="font-size:10px;color:#8aa0b5;">{{ sweepInfo }}</span>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <sc-for list="{{ runChips }}" as="rc" hint-placeholder-count="0">
+              <span style="display:inline-flex;align-items:center;gap:5px;font-size:9px;letter-spacing:1px;color:#8aa0b5;"><span style="width:14px;height:2px;background:{{ rc.color }};"></span>{{ rc.label }}</span>
+            </sc-for>
+          </div>
+          <div style="flex:1;"></div>
+          <span style="font-size:9px;color:#43586c;">TRAIL LOGS OPERATING POINT EVERY 1.5 s</span>
+          <button onClick="{{ onClearTrail }}" style="padding:6px 10px;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border:1px solid #1c2c3c;background:#0d1620;color:#8aa0b5;" style-hover="color:#c6d4e2;border-color:#2c4258;">CLEAR</button>
+          <button onClick="{{ onExport }}" style="padding:6px 10px;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border:1px solid #2c586e;background:#0c2431;color:#3fd9ff;" style-hover="color:#e8f2fa;border-color:#3fd9ff;">EXPORT CSV</button>
+        </div>
+        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;min-height:0;">
+          <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:8px 10px;">
+            <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:4px;">DENSITY n̄</div>
+            <div style="flex:1;position:relative;min-height:0;"><canvas ref="{{ pDen }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas></div>
+          </div>
+          <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:8px 10px;">
+            <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:4px;">EDGE/CORE RATIO R_ec</div>
+            <div style="flex:1;position:relative;min-height:0;"><canvas ref="{{ pRec }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas></div>
+          </div>
+          <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:8px 10px;">
+            <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:4px;">TURBULENCE δn/n</div>
+            <div style="flex:1;position:relative;min-height:0;"><canvas ref="{{ pDnn }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas></div>
+          </div>
+          <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:8px 10px;">
+            <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:4px;">IONIZATION RATE</div>
+            <div style="flex:1;position:relative;min-height:0;"><canvas ref="{{ pIon }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GUIDE -->
+      <div data-screen-label="Guide" style="position:absolute;inset:0;display:{{ guideDisplay }};overflow-y:auto;padding:26px 30px 60px;">
+        <div style="max-width:940px;margin:0 auto;">
+
+          <div style="margin-bottom:26px;">
+            <div style="font-size:16px;font-weight:700;letter-spacing:4px;color:#3fd9ff;">OPERATOR'S GUIDE</div>
+            <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-top:4px;">EHR DIGITAL TWIN · HOW TO RUN THE MACHINE, WHAT TO WATCH, WHAT IT'S FOR</div>
+          </div>
+
+          <!-- 01 WHAT THIS IS -->
+          <div style="border:1px solid #121e2b;background:#070d14;padding:14px 16px;margin-bottom:14px;">
+            <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3fd9ff;margin-bottom:8px;">01 · WHAT THIS IS</div>
+            <div style="font-size:11px;line-height:1.75;color:#8aa0b5;">
+              A reduced-physics digital twin of a helical-antenna plasma reactor: a cylindrical vessel (radius R, length 4R) in a twisted magnetic field, driven by RF. ~18k macro-electrons are pushed with a <span style="color:#c6d4e2;">Boris integrator</span> through the analytic field; <span style="color:#c6d4e2;">Monte-Carlo collisions</span> with neutral gas scatter, drag, and ionize (15.8 eV threshold); density accumulates on a <span style="color:#c6d4e2;">64×64×128 grid</span>; the wafer chuck at z=+2 absorbs whatever reaches it. Units are normalized — lengths in radii (u), field in B₀ — so read every number as relative, not engineering-grade.
+            </div>
+            <div style="margin-top:10px;padding:9px 11px;border:1px solid #14222f;background:#081019;font-size:11px;line-height:1.7;color:#8aa0b5;">
+              <span style="color:#ffb454;font-weight:600;">THE QUESTION UNDER TEST</span> — the antenna launches a helical wave with pitch k_θ/k_z (k_θ = m/r); field lines twist with pitch B_θ/B_z. The match number <span style="color:#c6d4e2;">M = (k_θ/k_z)·(B_z/B_θ)</span> compares them. Hypothesis: RF→plasma coupling peaks when the two helices align, <span style="color:#5cf2a6;">M ≈ 1</span>. This rig lets you bake that in (KERNEL), or force it to emerge — or fail — from geometry (EMERGENT, WAVE).
+            </div>
+          </div>
+
+          <!-- 02 QUICK START -->
+          <div style="border:1px solid #121e2b;background:#070d14;padding:14px 16px;margin-bottom:14px;">
+            <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#5cf2a6;margin-bottom:8px;">02 · QUICK START — 60 SECONDS</div>
+            <div style="display:grid;grid-template-columns:22px 1fr;gap:5px 10px;font-size:11px;line-height:1.65;color:#8aa0b5;">
+              <span style="color:#5cf2a6;">0</span><span>In a hurry? <span style="color:#c6d4e2;">PRESETS</span> at the top of the rail jump straight to canonical operating points — matched, detuned, helicon lock, plasma crystal, etch window.</span>
+              <span style="color:#5cf2a6;">1</span><span>Stay on <span style="color:#c6d4e2;">SIMULATE</span>. The plasma is live — drag to orbit, wheel to zoom. HOLD freezes the push loop; RESET reseeds.</span>
+              <span style="color:#5cf2a6;">2</span><span>Watch <span style="color:#c6d4e2;">MATCH M</span> in the top bar. Drag <span style="color:#c6d4e2;">B_θ/B_z</span> (or ANTENNA k_z) until the marker hits the center tick and M turns green (±5% of 1).</span>
+              <span style="color:#5cf2a6;">3</span><span>Watch CPL and <span style="color:#3fd9ff;">n CORE</span> in the LIVE DIAGNOSTICS HUD climb. Now detune M away from 1 and watch the discharge starve.</span>
+              <span style="color:#5cf2a6;">4</span><span>Switch COUPLING MODEL to <span style="color:#c6d4e2;">EMERGENT</span> — the M≈1 prior is removed. Does the peak survive on geometry alone?</span>
+              <span style="color:#5cf2a6;">5</span><span>Open <span style="color:#c6d4e2;">PLOTS</span> → RUN M SWEEP for the full coupling curve, hands-free.</span>
+            </div>
+          </div>
+
+          <!-- 03 CONTROL RAIL -->
+          <div style="border:1px solid #121e2b;background:#070d14;padding:14px 16px;margin-bottom:14px;">
+            <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#ffb454;margin-bottom:10px;">03 · CONTROL RAIL — LEFT PANEL</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:9px;font-weight:600;letter-spacing:2px;color:#ffb454;margin-bottom:7px;">RF &amp; ANTENNA</div>
+                <div style="display:grid;grid-template-columns:106px 1fr;gap:4px 10px;font-size:10.5px;line-height:1.55;">
+                  <span style="color:#c6d4e2;">RF POWER</span><span style="color:#8aa0b5;">Heating drive. Ionization rate and density scale with it — the throttle.</span>
+                  <span style="color:#c6d4e2;">RF FREQ</span><span style="color:#8aa0b5;">Inert in KERNEL/EMERGENT. In WAVE it enters the helicon dispersion — density locks to f (see f_RES).</span>
+                  <span style="color:#c6d4e2;">ANTENNA k_z</span><span style="color:#8aa0b5;">Axial wavenumber of the helical strap. With m it sets antenna pitch k_θ/k_z — the numerator of M.</span>
+                  <span style="color:#c6d4e2;">MODE m</span><span style="color:#8aa0b5;">Azimuthal mode 1–3. Higher m = tighter helix. In WAVE, deposition follows J₍m₋₁₎(k⊥r)² — m=1 is core-peaked. Verify with the B-DOT array.</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:9px;font-weight:600;letter-spacing:2px;color:#3fd9ff;margin-bottom:7px;">MAGNETIC FIELD</div>
+                <div style="display:grid;grid-template-columns:106px 1fr;gap:4px 10px;font-size:10.5px;line-height:1.55;">
+                  <span style="color:#c6d4e2;">SCREW PINCH</span><span style="color:#8aa0b5;">Uniform B_z + azimuthal B_θ ∝ r. Slider sets the wall ratio B_θ/B_z — the denominator of M.</span>
+                  <span style="color:#c6d4e2;">BELTRAMI</span><span style="color:#8aa0b5;">Force-free field (∇×B = αB). Twist varies with radius, so only one surface can match — watch where deposition lands.</span>
+                  <span style="color:#c6d4e2;">READOUT BOX</span><span style="color:#8aa0b5;">Live M, coupling %, reflected power (uncoupled RF), field-line pitch L_p at r=0.7R, and the WAVE resonance f_RES.</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:9px;font-weight:600;letter-spacing:2px;color:#c6d4e2;margin-bottom:7px;">COUPLING MODEL — THE EPISTEMIC SWITCH</div>
+                <div style="display:grid;grid-template-columns:106px 1fr;gap:4px 10px;font-size:10.5px;line-height:1.55;">
+                  <span style="color:#c6d4e2;">KERNEL</span><span style="color:#8aa0b5;">The M≈1 hypothesis baked in as a Gaussian prior. A benchmark, not a test.</span>
+                  <span style="color:#c6d4e2;">EMERGENT</span><span style="color:#8aa0b5;">Coupling computed from local k̂·b̂ alignment + electron transit coherence; deposition at the resonant layer r=√M. No prior — the honest test.</span>
+                  <span style="color:#c6d4e2;">WAVE</span><span style="color:#8aa0b5;">EMERGENT + helicon eigenmode J₍m₋₁₎ and dispersion: RF FREQ becomes physical and n̄ chases f.</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:9px;font-weight:600;letter-spacing:2px;color:#5cf2a6;margin-bottom:7px;">GAS &amp; ACOUSTICS</div>
+                <div style="display:grid;grid-template-columns:106px 1fr;gap:4px 10px;font-size:10.5px;line-height:1.55;">
+                  <span style="color:#c6d4e2;">PRESSURE</span><span style="color:#8aa0b5;">Neutral fill, 0.5–15 mTorr. More gas = more ionization targets but more drag; there's a sweet spot.</span>
+                  <span style="color:#c6d4e2;">ACOUSTIC A/λ/f</span><span style="color:#8aa0b5;">Impose a neutral-density wave (depth, wavelength, frequency). The plasma should imprint it — check the AXIAL STRUCTURE correlation r in DIAGNOSTICS.</span>
+                  <span style="color:#c6d4e2;">TRAV/STAND</span><span style="color:#8aa0b5;">Traveling wave sweeps along z; standing wave beats in place at fixed nodes.</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:9px;font-weight:600;letter-spacing:2px;color:#ff8f6b;margin-bottom:7px;">WAFER &amp; DUST</div>
+                <div style="display:grid;grid-template-columns:106px 1fr;gap:4px 10px;font-size:10.5px;line-height:1.55;">
+                  <span style="color:#c6d4e2;">CHUCK RF BIAS</span><span style="color:#8aa0b5;">Sheath voltage at the wafer, 0–300 V. Sets ion impact energy ⟨E_ion⟩ — trade etch rate against damage.</span>
+                  <span style="color:#c6d4e2;">DUST COUNT</span><span style="color:#8aa0b5;">Inject up to 1000 charged grains. They levitate in the sheath, feel ion drag from the live ∇n, and interact via Yukawa pairs.</span>
+                  <span style="color:#c6d4e2;">q_d · λ_D</span><span style="color:#8aa0b5;">Grain charge and Debye screening length. Together they set the coupling Γ — past Γ≈170 the cloud freezes into a plasma crystal.</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:9px;font-weight:600;letter-spacing:2px;color:#8aa0b5;margin-bottom:7px;">DISPLAY LAYERS</div>
+                <div style="font-size:10.5px;line-height:1.6;color:#8aa0b5;">Chips toggle 3D render layers: FIELD LINES, ELECTRONS, VOLUME (density raymarch), ISOSURFACES, ANTENNA, DUST, CHUCK. Turn layers off to declutter or to speed up rendering on slow machines.</div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 04 SCREENS -->
+          <div style="border:1px solid #121e2b;background:#070d14;padding:14px 16px;margin-bottom:14px;">
+            <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#3fd9ff;margin-bottom:8px;">04 · SCREENS</div>
+            <div style="display:grid;grid-template-columns:106px 1fr;gap:5px 10px;font-size:10.5px;line-height:1.6;">
+              <span style="color:#c6d4e2;">SIMULATE</span><span style="color:#8aa0b5;">The 3D vessel. Drag to orbit, wheel to zoom. Top-right HUD streams live numbers — click its header to collapse. Bottom-left colorbar maps the density raymarch.</span>
+              <span style="color:#c6d4e2;">DIAGNOSTICS</span><span style="color:#8aa0b5;">Six synthetic instruments: Langmuir probes (core/edge density + radial profile), turbulence proxy (δn/n trend + Hann PSD), 8-probe B-dot array (recovers the azimuthal mode m via DFT — compare against drive), synthetic GPI camera (line-integrated n_e), axial structure (n_e(z) vs acoustic drive, correlation r), and the wafer/dust panel (ion flux, etch non-uniformity, dust state + pair correlation g(r)).</span>
+              <span style="color:#c6d4e2;">PLOTS</span><span style="color:#8aa0b5;">Strip charts of n̄, R_ec, δn/n, ionization rate. Pick M or f, hit RUN SWEEP: the engine steps the variable, holds each point until statistics settle, and traces the response curve. Completed sweeps are stored (up to 4) and overlay color-coded by coupling model — <span style="color:#3fd9ff;">KERNEL</span> / <span style="color:#5cf2a6;">EMERGENT</span> / <span style="color:#c77dff;">WAVE</span> — so you can re-run under a different model and compare curves directly. The trail also logs manual operating points every 1.5 s. EXPORT CSV downloads all stored runs + trail; CLEAR wipes both.</span>
+            </div>
+          </div>
+
+          <!-- 05 EXPERIMENTS -->
+          <div style="border:1px solid #121e2b;background:#070d14;padding:14px 16px;margin-bottom:14px;">
+            <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#ffb454;margin-bottom:10px;">05 · RUN THESE EXPERIMENTS</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:10px;font-weight:600;color:#5cf2a6;margin-bottom:5px;">P1 · DOES M≈1 EMERGE?</div>
+                <div style="font-size:10.5px;line-height:1.6;color:#8aa0b5;">COUPLING MODEL → EMERGENT. PLOTS → sweep M. KERNEL would show a peak at 1 by construction — the question is whether EMERGENT reproduces it from k̂·b̂ geometry alone. Compare peak location, width, and asymmetry.</div>
+              </div>
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:10px;font-weight:600;color:#5cf2a6;margin-bottom:5px;">P2 · HELICON DENSITY LOCK</div>
+                <div style="font-size:10.5px;line-height:1.6;color:#8aa0b5;">COUPLING MODEL → WAVE. Sweep f. Watch n̄ resonate where drive crosses f_RES, then re-lock as dispersion pulls density along. The f_RES readout in the rail tells you where to expect it.</div>
+              </div>
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:10px;font-weight:600;color:#5cf2a6;margin-bottom:5px;">P3 · GROW A PLASMA CRYSTAL</div>
+                <div style="font-size:10.5px;line-height:1.6;color:#8aa0b5;">DUST COUNT ≥ 400, q_d up, pressure low. Watch Γ climb in the HUD; past ~170 the state flips to CRYSTAL and g(r) in DIAGNOSTICS develops sharp lattice peaks. Kick pressure up to melt it again.</div>
+              </div>
+              <div style="border:1px solid #14222f;background:#081019;padding:10px 12px;">
+                <div style="font-size:10px;font-weight:600;color:#5cf2a6;margin-bottom:5px;">P4 · FIND THE ETCH WINDOW</div>
+                <div style="font-size:10.5px;line-height:1.6;color:#8aa0b5;">Tune field + bias to minimize ETCH NON-UNIF σ/μ (green &lt; 20%) while keeping ion flux to the chuck high. Matched M with m=1 core deposition tends to flatten the wafer profile — verify it.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 06 GLOSSARY -->
+          <div style="border:1px solid #121e2b;background:#070d14;padding:14px 16px;margin-bottom:14px;">
+            <div style="font-size:10px;font-weight:600;letter-spacing:2px;color:#5b7186;margin-bottom:8px;">06 · READING THE HUD</div>
+            <div style="display:grid;grid-template-columns:88px 1fr 88px 1fr;gap:4px 12px;font-size:10.5px;line-height:1.55;">
+              <span style="color:#c6d4e2;">n̄ / CORE / EDGE</span><span style="color:#8aa0b5;">Mean density, and probes at r&lt;0.3R / r&gt;0.8R (normalized).</span>
+              <span style="color:#c6d4e2;">R_ec</span><span style="color:#8aa0b5;">Edge/core ratio. 0.8–1.25 reads green: flat, well-confined profile.</span>
+              <span style="color:#c6d4e2;">δn/n</span><span style="color:#8aa0b5;">Density fluctuation over a 10 s window — the turbulence proxy.</span>
+              <span style="color:#c6d4e2;">ION RATE</span><span style="color:#8aa0b5;">Ionization events per second (thousands).</span>
+              <span style="color:#c6d4e2;">⟨E⟩</span><span style="color:#8aa0b5;">Mean electron energy, eV. Ionization needs the &gt;15.8 eV tail.</span>
+              <span style="color:#c6d4e2;">τ RES</span><span style="color:#8aa0b5;">Mean electron residence time before loss.</span>
+              <span style="color:#c6d4e2;">Φ CHUCK</span><span style="color:#8aa0b5;">Ion arrival rate at the wafer.</span>
+              <span style="color:#c6d4e2;">Γ · κ · a</span><span style="color:#8aa0b5;">Dust coupling, screening ratio, grain spacing. Γ&gt;170 ⇒ crystal.</span>
+            </div>
+            <div style="margin-top:10px;padding-top:8px;border-top:1px solid #101a26;font-size:9.5px;line-height:1.6;color:#43586c;">
+              REDUCED MODEL — analytic fields, fluid ions, normalized units. Trust trends and comparisons between settings, not absolute values. When in doubt, RESET and change one knob at a time.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <div style="height:28px;flex:none;display:flex;align-items:center;gap:18px;padding:0 14px;border-top:1px solid #121e2b;background:#060b11;font-size:10px;color:#5b7186;">
+    <span style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:50%;background:{{ plasmaLedColor }};animation:ehrpulse 2s ease-in-out infinite;"></span>PLASMA</span>
+    <span>{{ footText }}</span>
+    <div style="flex:1;"></div>
+    <span style="color:#43586c;">{{ modelNote }}</span>
+  </div>
+
+  <sc-if value="{{ scanlinesOn }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.16) 0px,rgba(0,0,0,0.16) 1px,transparent 1px,transparent 3px);"></div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: &quot;100%&quot; },
+  &quot;quality&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;low&quot;, &quot;standard&quot;, &quot;high&quot;], &quot;default&quot;: &quot;standard&quot;, &quot;tsType&quot;: &quot;'low'|'standard'|'high'&quot;, &quot;section&quot;: &quot;Performance&quot; },
+  &quot;colormap&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;plasma&quot;, &quot;ice&quot;, &quot;ember&quot;], &quot;default&quot;: &quot;plasma&quot;, &quot;tsType&quot;: &quot;'plasma'|'ice'|'ember'&quot;, &quot;section&quot;: &quot;Display&quot; },
+  &quot;scanlines&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Display&quot; }
+}">
+class Component extends DCLogic {
+  state = { tab: 'sim', running: true, phase: 'boot', tick: 0, err: '', sweepVar: 'M', hudOpen: true, preset: '',
+            layers: { lines: true, particles: true, volume: true, iso: false, antenna: true, dust: true, chuck: true } };
+
+  c3d = React.createRef();
+  gpiC = React.createRef();
+  psdC = React.createRef();
+  trendC = React.createRef();
+  radialC = React.createRef();
+  axialC = React.createRef();
+  pDen = React.createRef();
+  pRec = React.createRef();
+  pDnn = React.createRef();
+  pIon = React.createRef();
+  bdotC = React.createRef();
+  gofrC = React.createRef();
+
+  qualityN() {
+    const q = this.props.quality || 'standard';
+    return q === 'low' ? 9000 : q === 'high' ? 40000 : 18000;
+  }
+  cmapIdx() {
+    const c = this.props.colormap || 'plasma';
+    return c === 'ice' ? 1 : c === 'ember' ? 2 : 0;
+  }
+
+  componentDidMount() {
+    this.mounted = true;
+    this._boot();
+  }
+  componentWillUnmount() {
+    this.mounted = false;
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this.view) this.view.dispose();
+  }
+  componentDidUpdate(prevProps) {
+    if (!prevProps) return;
+    if (prevProps.quality !== this.props.quality && this.engine) {
+      this.engine.setN(this.qualityN());
+      if (this.view) this.view.rebuildParticleBuffers();
+    }
+    if (prevProps.colormap !== this.props.colormap && this.view) {
+      this.view.setColormap(this.cmapIdx());
+    }
+  }
+
+  async _boot() {
+    const t0 = Date.now();
+    while (!(window.EHREngine && window.EHRPlots && window.EHRView3D && window.EHRDust)) {
+      if (Date.now() - t0 > 12000) { this.setState({ phase: 'error', err: 'MODULE LOAD TIMEOUT' }); return; }
+      await new Promise(r => setTimeout(r, 60));
+    }
+    this.engine = new window.EHREngine(this.qualityN());
+    this.setState({ phase: 'warm' });
+    try {
+      const mod = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+      if (this.c3d.current) {
+        this.view = new window.EHRView3D(mod, this.c3d.current, this.engine);
+        this.view.setColormap(this.cmapIdx());
+        this.view.setLayers(this.state.layers);
+      }
+    } catch (e) {
+      this.webglErr = '3D VIEW UNAVAILABLE — ' + (e.message || 'WebGL/CDN error');
+    }
+    this.setState({ phase: 'ready' });
+    this._last = 0;
+    this._raf = requestAnimationFrame(this._tick);
+  }
+
+  _tick = (ts) => {
+    if (!this.mounted) return;
+    const dt = this._last ? Math.min(ts - this._last, 66) : 16;
+    this._last = ts;
+    const e = this.engine;
+    if (e) {
+      if (this.state.running) e.step(dt);
+      if (e.geomDirty && this.view) {
+        this._geomAcc = (this._geomAcc || 0) + dt;
+        if (this._geomAcc > 260) { this._geomAcc = 0; e.geomDirty = false; this.view.rebuildGeometry(); }
+      }
+      if (this.view && this.state.tab === 'sim') this.view.update();
+      this._drawAcc = (this._drawAcc || 0) + dt;
+      if (this._drawAcc > 130) {
+        this._drawAcc = 0;
+        this._drawTab();
+        this.setState({ tick: this.state.tick + 1 });
+      }
+    }
+    this._raf = requestAnimationFrame(this._tick);
+  };
+
+  _drawTab() {
+    const e = this.engine, P = window.EHRPlots;
+    if (!e || !P) return;
+    const tab = this.state.tab;
+    if (tab === 'diag') {
+      // radial profile
+      if (this.radialC.current) {
+        const y = Array.from(e.radial), x = y.map((_, b) => (b + 0.5) / 28);
+        P.chart(this.radialC.current, {
+          series: [{ x, y, color: '#3fd9ff', width: 1.6 }],
+          xMin: 0, xMax: 1, yMin: 0, xLabel: 'r / R',
+          vlines: [{ x: 0.3, color: '#2a4258', label: 'CORE' }, { x: 0.8, color: '#2a4258', label: 'EDGE' }],
+        });
+      }
+      // density trend
+      if (this.trendC.current) {
+        const h = e.histSlice('n', 300);
+        P.chart(this.trendC.current, {
+          series: [{ x: Array.from(h.t), y: Array.from(h.v), color: '#5cf2a6', width: 1.2 }],
+          yMin: 0, yPad: 0.15,
+        });
+      }
+      // PSD
+      if (this.psdC.current) {
+        const psd = e.computePSD(80);
+        if (psd) {
+          P.chart(this.psdC.current, {
+            series: [{ x: Array.from(psd.freq), y: Array.from(psd.psd), color: '#3fd9ff', width: 1.3 }],
+            yMin: 0, xLabel: 'f [Hz]', yLabel: 'PSD',
+          });
+        }
+      }
+      // GPI
+      if (this.gpiC.current) {
+        P.heat(this.gpiC.current, e.gpi, 64, 64, { palette: 'inferno', circleMask: true, gamma: 0.55 });
+      }
+      // axial
+      if (this.axialC.current) {
+        const y = Array.from(e.axial), x = y.map((_, b) => (b + 0.5) / 64 * 4 - 2);
+        let mu = 0; for (const v of y) mu += v; mu /= (y.length || 1);
+        const nn = Array.from(e.axialNeutral()).map(v => v * mu);
+        P.chart(this.axialC.current, {
+          series: [
+            { x, y, color: '#3fd9ff', width: 1.6 },
+            { x, y: nn, color: '#ffb454', width: 1, dash: [3, 3], alpha: 0.85 },
+          ],
+          xMin: -2, xMax: 2, yMin: 0, xLabel: 'z', yPad: 0.2,
+        });
+      }
+      // B-dot waterfall (8 probes, ring buffer)
+      if (this.bdotC.current) {
+        const L = e.bdotLen, hb = e.bdotHead;
+        const xs = new Array(L);
+        for (let k = 0; k < L; k++) xs[k] = k;
+        const series = [];
+        for (let i = 0; i < 8; i++) {
+          const y = new Array(L);
+          for (let k = 0; k < L; k++) y[k] = e.bdot[((hb + k) % L) * 8 + i] * 0.42 + (7 - i);
+          series.push({ x: xs, y, color: i % 2 ? '#2a4b63' : '#3fd9ff', width: 1 });
+        }
+        P.chart(this.bdotC.current, { series, yMin: -0.8, yMax: 7.9, yPad: 0 });
+      }
+      // dust pair correlation
+      if (this.gofrC.current && e.dust) {
+        const gr = Array.from(e.dust.gofr), x = gr.map((_, b) => (b + 0.5) / 96);
+        P.chart(this.gofrC.current, { series: [{ x, y: gr, color: '#ff8f6b', width: 1.4 }], xMin: 0, xMax: 0.5, yMin: 0, xLabel: 'r [R]' });
+      }
+    } else if (tab === 'plots') {
+      const isFreq = this.state.sweepVar === 'freq';
+      const vKey = isFreq ? 'freq' : 'M';
+      const runs = (e.sweepRuns || []).filter(r => r.variable === vKey);
+      const live = (e.sweep.active && e.sweep.variable === vKey)
+        ? (e.sweep.points || []).filter(p => p.samples > 0 && isFinite(p.n)) : [];
+      const tr = e.trail;
+      const MC = { kernel: '#3fd9ff', emergent: '#5cf2a6', wave: '#c77dff' };
+      const mk = (key, canvas, opts) => {
+        if (!canvas) return;
+        const series = [];
+        if (!isFreq && tr.M.length) series.push({ x: tr.M.slice(), y: tr[key].slice(), color: '#2a4b63', dotsOnly: true, dotR: 2, alpha: 0.8 });
+        const seen = {};
+        for (const r of runs) {
+          const nth = (seen[r.mode] = (seen[r.mode] || 0) + 1);
+          series.push({ x: r.points.map(p => p.x), y: r.points.map(p => p[key]), color: MC[r.mode] || '#3fd9ff', width: 1.7, dash: nth > 1 ? [4, 3] : null, dots: true, dotR: 2 });
+        }
+        if (live.length) series.push({ x: live.map(p => p.x), y: live.map(p => p[key]), color: '#e8f2fa', width: 1.8, dots: true, dotR: 2.5 });
+        const ax = isFreq
+          ? { xLog: false, xMin: 2, xMax: 27, xLabel: 'f [MHz]', curX: e.params.rfFreq,
+              vlines: e.fRes > 0 && e.fRes < 27 ? [{ x: e.fRes, color: '#ffb454', label: 'f_res' }] : [] }
+          : { xLog: true, xMin: 0.22, xMax: 4.5, xLabel: 'M  (log)', curX: e.M,
+              vlines: [{ x: 1, color: '#ffb454', label: 'M=1' }] };
+        P.chart(canvas, Object.assign({ series, yMin: 0 }, ax, opts));
+      };
+      mk('n', this.pDen.current, {});
+      mk('rec', this.pRec.current, { yMax: 1.4 });
+      mk('dnn', this.pDnn.current, {});
+      mk('ion', this.pIon.current, {});
+    }
+  }
+
+  // ---------- handlers ----------
+  onTab = (ev) => { this.setState({ tab: ev.currentTarget.dataset.tab }); };
+  onRun = () => { this.setState({ running: !this.state.running }); };
+  onReset = () => { if (this.engine) this.engine.reset(); };
+  onSlider = (ev) => {
+    if (!this.engine) return;
+    this.engine.setParam(ev.target.dataset.k, parseFloat(ev.target.value));
+    if (this.state.preset) this.setState({ preset: '' });
+  };
+  onMMode = (ev) => {
+    if (!this.engine) return;
+    this.engine.setParam('mMode', parseInt(ev.currentTarget.dataset.m, 10));
+    this.setState({ preset: '' });
+  };
+  onHudToggle = () => this.setState(s => ({ hudOpen: !s.hudOpen }));
+  onChip = (ev) => {
+    const k = ev.currentTarget.dataset.layer;
+    const layers = Object.assign({}, this.state.layers);
+    layers[k] = !layers[k];
+    this.setState({ layers });
+    if (this.view) this.view.setLayers(layers);
+  };
+  onFieldModel = (ev) => {
+    if (!this.engine) return;
+    this.engine.setParam('fieldModel', ev.currentTarget.dataset.fm);
+    this.setState({ preset: '' });
+  };
+  onAcMode = (ev) => {
+    if (!this.engine) return;
+    this.engine.setParam('acMode', ev.currentTarget.dataset.ac);
+    this.setState({});
+  };
+  onCplMode = (ev) => {
+    if (!this.engine) return;
+    this.engine.setParam('couplingMode', ev.currentTarget.dataset.mode);
+    this.setState({ preset: '' });
+  };
+  onSweep = () => {
+    if (!this.engine) return;
+    if (this.engine.sweep.active) this.engine.cancelSweep();
+    else this.engine.startSweep(this.state.sweepVar);
+    this.setState({});
+  };
+  onSweepVar = (ev) => { this.setState({ sweepVar: ev.currentTarget.dataset.var }); };
+  onClearTrail = () => { if (this.engine) { this.engine.clearTrail(); this.setState({}); } };
+  onPreset = (ev) => {
+    const e = this.engine; if (!e) return;
+    const k = ev.currentTarget.dataset.preset;
+    const base = { fieldModel: 'screw', Bz: 1.0, kzA: 1.6, mMode: 1, btRatio: 0.625, rfPower: 55,
+                   rfFreq: 13.56, pressure: 3.0, acA: 0.3, dustN: 0, bias: 80, couplingMode: 'emergent' };
+    const mods = {
+      matched: {},
+      detuned: { btRatio: 0.25 },
+      helicon: { couplingMode: 'wave', rfPower: 70, pressure: 2.5 },
+      crystal: { couplingMode: 'kernel', rfPower: 38, pressure: 1.2, acA: 0, dustN: 650, dustQ: 8.5, dustLam: 0.045, bias: 60 },
+      etch: { rfPower: 65, pressure: 4, acA: 0, bias: 140 },
+    }[k];
+    if (!mods) return;
+    const ps = Object.assign({}, base, mods);
+    for (const key in ps) e.setParam(key, ps[key]);
+    const st = { preset: k, tab: k === 'helicon' ? 'plots' : k === 'etch' ? 'diag' : 'sim' };
+    if (k === 'helicon') st.sweepVar = 'freq';
+    if (k === 'crystal') {
+      st.layers = Object.assign({}, this.state.layers, { dust: true, chuck: true });
+      if (this.view) this.view.setLayers(st.layers);
+    }
+    this.setState(st);
+  };
+  onExport = () => {
+    const e = this.engine; if (!e) return;
+    const p = e.params;
+    const lines = [
+      '# EHR SIMULATOR EXPORT · t=' + e.tReal.toFixed(1) + ' s',
+      '# current params: ' + Object.keys(p).map(k => k + '=' + p[k]).join(' '),
+      'source,run,variable,coupling_mode,x,n_mean,R_ec,dnn,ion_rate_kps',
+    ];
+    (e.sweepRuns || []).forEach((r, ri) => {
+      for (const pt of r.points) {
+        if (!(pt.x !== undefined && isFinite(pt.n))) continue;
+        lines.push(['sweep', ri + 1, r.variable, r.mode, pt.x.toFixed(4), pt.n.toFixed(4), pt.rec.toFixed(4), pt.dnn.toFixed(5), pt.ion.toFixed(3)].join(','));
+      }
+    });
+    const t = e.trail;
+    for (let i = 0; i < t.M.length; i++) {
+      lines.push(['trail', '', 'M', t.mode[i] || '', t.M[i].toFixed(4), t.n[i].toFixed(4), t.rec[i].toFixed(4), t.dnn[i].toFixed(5), t.ion[i].toFixed(3)].join(','));
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ehr-export.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  };
+
+  // ---------- render ----------
+  renderVals() {
+    const e = this.engine;
+    const P = e ? e.params : { rfPower: 42, rfFreq: 13.56, mMode: 1, kzA: 1.6, Bz: 1, btRatio: 0.62, pressure: 3, acA: 0.3, acLambda: 1.3, acFreq: 0.4, N: 18000 };
+    const d = e ? e.diag : { nCore: 0, nEdge: 0, Rec: 0, nMean: 0, dnn: 0, ionRate: 0, meanE: 0, resTime: 0, refl: 0 };
+    const M = e ? e.M : 1.008;
+    const cpl = e ? e.coupling : 1;
+    const cm = P.couplingMode || 'kernel';
+    const fm = P.fieldModel || 'screw';
+    const am = P.acMode || 'traveling';
+    const lnM = Math.abs(Math.log(M));
+    const mColor = lnM < 0.15 ? '#5cf2a6' : lnM < 0.55 ? '#3fd9ff' : '#ffb454';
+    const mBarLeft = Math.max(0, Math.min(100, (Math.log2(M) + 2) / 4 * 100)).toFixed(1) + '%';
+
+    const btnBase = "padding:7px 14px;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1.5px;cursor:pointer;border:1px solid ";
+    const tabStyle = (on) => btnBase + (on ? '#2c586e;background:#0c2431;color:#3fd9ff;' : '#1c2c3c;background:#0d1620;color:#8aa0b5;');
+    const segStyle = (on) => "flex:1;padding:5px 0;font:600 10px 'IBM Plex Mono',monospace;cursor:pointer;border:1px solid " + (on ? '#2c586e;background:#0c2431;color:#3fd9ff;' : '#1c2c3c;background:#0d1620;color:#8aa0b5;');
+    const chipStyle = (on) => "padding:4px 8px;font:500 9px 'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border:1px solid " + (on ? '#2c586e;background:#0c2431;color:#3fd9ff;' : '#16232f;background:#0a121b;color:#5b7186;');
+
+    const ctl = (key, label, min, max, step, digits, unit) => ({
+      key, label, min, max, step, value: P[key],
+      valueText: (+P[key]).toFixed(digits) + (unit ? ' ' + unit : ''),
+    });
+
+    const layers = this.state.layers;
+    const chipDefs = [
+      ['lines', 'FIELD LINES'], ['particles', 'ELECTRONS'], ['volume', 'VOLUME'], ['iso', 'ISOSURFACES'], ['antenna', 'ANTENNA'],
+      ['dust', 'DUST'], ['chuck', 'CHUCK'],
+    ];
+    const svStyle = (on) => "padding:6px 11px;font:600 10px 'IBM Plex Mono',monospace;cursor:pointer;border:1px solid " + (on ? '#2c586e;background:#0c2431;color:#3fd9ff;' : '#1c2c3c;background:#0d1620;color:#8aa0b5;');
+    const du = e ? e.dust : null;
+    const dustOn = du && du.n > 0;
+    const dustStateColor = !dustOn ? '#5b7186' : du.state === 'CRYSTAL' ? '#5cf2a6' : du.state === 'LIQUID' ? '#3fd9ff' : '#ffb454';
+
+    const sweepActive = e && e.sweep.active;
+    const sweepPts = e && e.sweep.points ? e.sweep.points : [];
+    const sweepIdx = e ? e.sweep.idx : 0;
+    const running = this.state.running;
+    const phase = this.state.phase;
+
+    const fmt = (v, dig) => (isFinite(v) ? (+v).toFixed(dig) : '—');
+
+    return {
+      // tabs & panes
+      onTab: this.onTab,
+      tabSimStyle: tabStyle(this.state.tab === 'sim'),
+      tabDiagStyle: tabStyle(this.state.tab === 'diag'),
+      tabPlotsStyle: tabStyle(this.state.tab === 'plots'),
+      tabGuideStyle: tabStyle(this.state.tab === 'guide'),
+      guideDisplay: this.state.tab === 'guide' ? 'block' : 'none',
+      simDisplay: this.state.tab === 'sim' ? 'block' : 'none',
+      diagDisplay: this.state.tab === 'diag' ? 'grid' : 'none',
+      plotsDisplay: this.state.tab === 'plots' ? 'flex' : 'none',
+
+      // top bar
+      mText: fmt(M, 3),
+      mColor, mBarLeft,
+      couplingText: (cpl * 100).toFixed(0) + '%',
+      onRun: this.onRun,
+      runLabel: running ? 'HOLD' : 'RUN',
+      runStyle: btnBase + (running ? '#2c586e;background:#0c2431;color:#5cf2a6;' : '#5a3d1e;background:#241708;color:#ffb454;'),
+      onReset: this.onReset,
+
+      // controls
+      onSlider: this.onSlider,
+      rfControls: [
+        ctl('rfPower', 'RF POWER', 0, 100, 1, 0, 'kW'),
+        ctl('rfFreq', 'RF FREQ', 2, 27, 0.01, 2, 'MHz'),
+        ctl('kzA', 'ANTENNA k_z', 0.4, 4, 0.01, 2, 'rad/u'),
+      ],
+      onFieldModel: this.onFieldModel,
+      fmScrewStyle: segStyle(fm === 'screw'),
+      fmBeltStyle: segStyle(fm === 'beltrami'),
+      magControls: fm === 'beltrami'
+        ? [
+            ctl('Bz', 'B₀ AMPLITUDE', 0.2, 2.5, 0.01, 2, ''),
+            ctl('alpha', 'BELTRAMI α·R', 0.1, 2.3, 0.01, 2, ''),
+          ]
+        : [
+            ctl('Bz', 'B_z', 0.2, 2.5, 0.01, 2, 'B₀'),
+            ctl('btRatio', 'B_θ / B_z (wall)', 0.05, 2.5, 0.01, 2, ''),
+          ],
+      onAcMode: this.onAcMode,
+      acTravStyle: segStyle(am === 'traveling'),
+      acStandStyle: segStyle(am === 'standing'),
+      pitchText: e ? (e.pitchAt(0.7) > 999 ? '>999' : fmt(e.pitchAt(0.7), 1)) + ' u' : '—',
+      fResText: cm === 'wave' && e && e.fRes > 0 ? (e.fRes > 99 ? '>99' : fmt(e.fRes, 1)) + ' MHz' : '—',
+      dustControls: [
+        ctl('bias', 'CHUCK RF BIAS', 0, 300, 5, 0, 'V'),
+        ctl('dustN', 'DUST COUNT', 0, 1000, 10, 0, ''),
+        ctl('dustQ', 'DUST CHARGE q_d', 1, 10, 0.1, 1, 'ke'),
+        ctl('dustLam', 'SCREENING λ_D', 0.02, 0.15, 0.005, 3, 'R'),
+      ],
+      mFitText: fmt(d.mFit, 0),
+      mFitColor: d.mFit === P.mMode ? '#5cf2a6' : '#ffb454',
+      mSnrText: fmt(d.mSnr, 1),
+      mDriveText: fmt(P.mMode, 0),
+      acCorrText: fmt(d.acCorr, 2),
+      chuckFluxText: fmt(d.ionFlux, 1) + ' k/s',
+      ionEwText: fmt(d.ionEw, 0) + ' eV',
+      unifText: (d.waferUnif * 100).toFixed(1) + '%',
+      unifColor: d.waferUnif < 0.2 ? '#5cf2a6' : d.waferUnif < 0.4 ? '#3fd9ff' : '#ffb454',
+      dustState: dustOn ? du.state : 'OFF',
+      dustStateColor,
+      dustGammaText: dustOn ? fmt(du.gamma, 0) : '—',
+      dustKappaText: dustOn ? fmt(du.kappa, 2) : '—',
+      dustSpacingText: dustOn ? fmt(du.spacing, 3) + ' R' : '—',
+      onSweepVar: this.onSweepVar,
+      svMStyle: svStyle(this.state.sweepVar === 'M'),
+      svFStyle: svStyle(this.state.sweepVar === 'freq'),
+      onPreset: this.onPreset,
+      presets: [
+        ['matched', 'MATCHED M=1'], ['detuned', 'DETUNED M=2.5'], ['helicon', 'HELICON LOCK'],
+        ['crystal', 'PLASMA CRYSTAL'], ['etch', 'ETCH WINDOW'],
+      ].map(([key, label]) => ({ key, label, style: chipStyle(this.state.preset === key) })),
+      onExport: this.onExport,
+      runChips: (e ? e.sweepRuns : [])
+        .filter(r => r.variable === (this.state.sweepVar === 'freq' ? 'freq' : 'M'))
+        .map(r => ({ label: r.mode.toUpperCase(), color: { kernel: '#3fd9ff', emergent: '#5cf2a6', wave: '#c77dff' }[r.mode] || '#3fd9ff' })),
+      gasControls: [
+        ctl('pressure', 'NEUTRAL PRESSURE', 0.5, 15, 0.1, 1, 'mTorr'),
+        ctl('acA', 'ACOUSTIC DEPTH A', 0, 0.8, 0.01, 2, ''),
+        ctl('acLambda', 'ACOUSTIC λ', 0.4, 4, 0.05, 2, 'u'),
+        ctl('acFreq', 'ACOUSTIC FREQ', 0.05, 2, 0.05, 2, 'Hz'),
+      ],
+      onMMode: this.onMMode,
+      m1Style: segStyle(P.mMode === 1),
+      m2Style: segStyle(P.mMode === 2),
+      m3Style: segStyle(P.mMode === 3),
+      reflText: fmt(d.refl, 1) + ' kW',
+      onCplMode: this.onCplMode,
+      cplKernelStyle: segStyle(cm === 'kernel'),
+      cplEmergentStyle: segStyle(cm === 'emergent'),
+      cplWaveStyle: segStyle(cm === 'wave'),
+      cplModeNote: cm === 'emergent'
+        ? 'coupling = ⟨(k̂·b̂)² F(k⊥)⟩ local geometry — peak must emerge; deposition at resonant layer r=√M'
+        : cm === 'wave'
+          ? 'coupling = wall k̂·b̂ × coherence (emergent); deposition = J₍m₋₁₎(k⊥r)² helicon eigenmode — core-peaked for m=1'
+          : 'coupling = log-gaussian kernel peaked at M=1 (hypothesis encoded as prior)',
+      modelNote: cm === 'emergent'
+        ? 'EMERGENT COUPLING: k̂·B̂ ALIGNMENT × TRANSIT COHERENCE'
+        : cm === 'wave'
+          ? 'WAVE MODE: EMERGENT COUPLING × J₍m₋₁₎ BESSEL EIGENMODE'
+          : 'HYPOTHESIS KERNEL: COUPLING PEAK @ M≈1',
+      reflColor: d.refl > P.rfPower * 0.5 ? '#ff5d6c' : d.refl > P.rfPower * 0.25 ? '#ffb454' : '#5cf2a6',
+
+      // chips
+      chips: chipDefs.map(([key, label]) => ({ key, label, style: chipStyle(!!layers[key]) })),
+      onChip: this.onChip,
+
+      // HUD
+      onHudToggle: this.onHudToggle,
+      hudBodyDisplay: this.state.hudOpen ? 'block' : 'none',
+      hudChevron: this.state.hudOpen ? '▾' : '▸',
+      hudRows: [
+        { label: 'n̄ MEAN', value: fmt(d.nMean, 2), color: '#c6d4e2' },
+        { label: 'n CORE', value: fmt(d.nCore, 2), color: '#3fd9ff' },
+        { label: 'n EDGE', value: fmt(d.nEdge, 2), color: '#ffb454' },
+        { label: 'R_ec', value: fmt(d.Rec, 2), color: '#c6d4e2' },
+        { label: 'δn/n', value: (d.dnn * 100).toFixed(1) + '%', color: '#c6d4e2' },
+        { label: 'ION RATE', value: fmt(d.ionRate, 1) + ' k/s', color: '#c6d4e2' },
+        { label: '⟨E⟩', value: fmt(d.meanE, 1) + ' eV', color: '#c6d4e2' },
+        { label: 'τ RES', value: fmt(d.resTime * 1000, 0) + ' ms', color: '#c6d4e2' },
+        { label: 'Φ CHUCK', value: fmt(d.ionFlux, 1) + ' k/s', color: '#c6d4e2' },
+        { label: 'DUST', value: dustOn ? 'Γ' + fmt(du.gamma, 0) + ' ' + du.state : 'OFF', color: dustStateColor },
+      ],
+
+      // probes / turbulence readouts
+      recText: fmt(d.Rec, 2),
+      recColor: d.Rec > 0.8 && d.Rec < 1.25 ? '#5cf2a6' : '#c6d4e2',
+      nCoreText: fmt(d.nCore, 2),
+      nEdgeText: fmt(d.nEdge, 2),
+      coreBarW: Math.min(100, d.nCore / Math.max(d.nCore, d.nEdge, 1e-6) * 100).toFixed(0) + '%',
+      edgeBarW: Math.min(100, d.nEdge / Math.max(d.nCore, d.nEdge, 1e-6) * 100).toFixed(0) + '%',
+      dnnText: (d.dnn * 100).toFixed(1) + '%',
+      dnnColor: d.dnn < 0.05 ? '#5cf2a6' : d.dnn < 0.12 ? '#3fd9ff' : '#ffb454',
+      nMeanText: fmt(d.nMean, 2),
+
+      // sweep
+      onSweep: this.onSweep,
+      sweepBtnLabel: sweepActive ? 'ABORT SWEEP' : 'RUN ' + (this.state.sweepVar === 'freq' ? 'f' : 'M') + ' SWEEP',
+      sweepBtnStyle: btnBase + (sweepActive ? '#5a3d1e;background:#241708;color:#ffb454;' : '#2c586e;background:#0c2431;color:#5cf2a6;'),
+      sweepProgW: ((e ? e.sweepProgress : 0) * 100).toFixed(0) + '%',
+      sweepInfo: sweepActive
+        ? (e.sweep.variable === 'freq'
+            ? 'f=' + fmt(sweepPts[Math.min(sweepIdx, sweepPts.length - 1)].x, 1) + ' MHz'
+            : 'M=' + fmt(sweepPts[Math.min(sweepIdx, sweepPts.length - 1)].x, 2))
+          + ' · ' + (sweepIdx + 1) + '/' + sweepPts.length
+        : (e && e.sweepRuns.length
+            ? e.sweepRuns.length + ' RUN' + (e.sweepRuns.length > 1 ? 'S' : '') + ' STORED · SWITCH COUPLING MODEL & RE-RUN TO OVERLAY'
+            : 'NO SWEEP DATA'),
+      onClearTrail: this.onClearTrail,
+
+      // refs
+      c3d: this.c3d, gpiC: this.gpiC, psdC: this.psdC, trendC: this.trendC,
+      radialC: this.radialC, axialC: this.axialC,
+      pDen: this.pDen, pRec: this.pRec, pDnn: this.pDnn, pIon: this.pIon,
+
+      // boot / errors
+      bootDisplay: phase === 'ready' ? 'none' : 'flex',
+      bootMsg: phase === 'error' ? this.state.err : phase === 'warm' ? 'LOADING 3D PIPELINE' : 'INITIALIZING',
+      webglNote: this.webglErr || '',
+      webglNoteDisplay: this.webglErr ? 'block' : 'none',
+
+      // footer
+      plasmaLedColor: d.nMean > 0.05 ? '#5cf2a6' : '#43586c',
+      footText: 't=' + fmt(e ? e.tReal : 0, 1) + 's · ' + (P.N / 1000).toFixed(0) + 'k e⁻ · '
+        + fmt(e ? e.pushRate : 0, 1) + ' Mpush/s · grid 64×64×128 · ⟨E⟩ ' + fmt(d.meanE, 1) + ' eV',
+
+      scanlinesOn: !!this.props.scanlines,
+    };
+  }
+}
+</script>
+</body>
+</html>
