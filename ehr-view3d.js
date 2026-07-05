@@ -326,19 +326,31 @@
     _bindOrbit() {
       const c = this.canvas, o = this.orbit;
       let drag = false, lx = 0, ly = 0;
-      c.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; ly = e.clientY; c.setPointerCapture(e.pointerId); });
-      c.addEventListener('pointermove', e => {
+      this._onPointerDown = e => { drag = true; lx = e.clientX; ly = e.clientY; c.setPointerCapture(e.pointerId); };
+      this._onPointerMove = e => {
         if (!drag) return;
         o.theta -= (e.clientX - lx) * 0.0055;
         o.phi = Math.min(Math.PI - 0.12, Math.max(0.12, o.phi - (e.clientY - ly) * 0.0055));
         lx = e.clientX; ly = e.clientY;
-      });
-      c.addEventListener('pointerup', () => { drag = false; });
-      c.addEventListener('pointercancel', () => { drag = false; });
-      c.addEventListener('wheel', e => {
+      };
+      this._onPointerUp = () => { drag = false; };
+      this._onWheel = e => {
         e.preventDefault();
         o.dist = Math.min(14, Math.max(2.4, o.dist * Math.exp(e.deltaY * 0.0011)));
-      }, { passive: false });
+      };
+      c.addEventListener('pointerdown', this._onPointerDown);
+      c.addEventListener('pointermove', this._onPointerMove);
+      c.addEventListener('pointerup', this._onPointerUp);
+      c.addEventListener('pointercancel', this._onPointerUp);
+      c.addEventListener('wheel', this._onWheel, { passive: false });
+    }
+
+    _disposeObj(obj) {
+      if (!obj) return;
+      obj.traverse(ch => {
+        if (ch.geometry) ch.geometry.dispose();
+        if (ch.material) (Array.isArray(ch.material) ? ch.material : [ch.material]).forEach(m => m.dispose());
+      });
     }
 
     resize() {
@@ -423,7 +435,25 @@
       this.renderer.render(this.scene, this.camera);
     }
 
-    dispose() { this.renderer.dispose(); }
+    dispose() {
+      const c = this.canvas;
+      if (this._onPointerDown) {
+        c.removeEventListener('pointerdown', this._onPointerDown);
+        c.removeEventListener('pointermove', this._onPointerMove);
+        c.removeEventListener('pointerup', this._onPointerUp);
+        c.removeEventListener('pointercancel', this._onPointerUp);
+        c.removeEventListener('wheel', this._onWheel);
+      }
+      this._disposeObj(this.chamber);
+      this._disposeObj(this.chuckObj);
+      this._disposeObj(this.dustObj);
+      this._disposeObj(this.points);
+      this._disposeObj(this.linesObj);
+      this._disposeObj(this.antObj);
+      this._disposeObj(this.volMesh);
+      if (this.tex3d) this.tex3d.dispose();
+      this.renderer.dispose();
+    }
   }
 
   window.EHRView3D = EHRView3D;

@@ -1,0 +1,11 @@
+{
+  "name": "electromagnetic-helix-reactor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EHR — a reduced-physics digital twin of a helical-antenna plasma reactor. Static, no-build, single-page app.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npx --yes serve . -l 5173",
+    "start": "npx --yes serve . -l 5173"
+  }
+}

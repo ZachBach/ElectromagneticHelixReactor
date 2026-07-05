@@ -100,6 +100,7 @@
       this._nCal = 0; this._nSmooth = 0; this._chuckCount = 0;
       if (this._cq) this._cq.fill(0);
       if (this.bdot) this.bdot.fill(0);
+      if (this.dust) this.dust.reseed();
     }
 
     spawn(i, p, v) {
@@ -443,7 +444,6 @@
         }
       }
       for (let b = 0; b < 28; b++) radial[b] = radCnt[b] ? radial[b] / radCnt[b] : 0;
-      const axNorm = this.maskCount * 2 / NZ * NZ / 64; // voxels per axial bin
       for (let b = 0; b < 64; b++) axial[b] /= (this.maskCount * 2);
       const d = this.diag;
       d.nCore = cC ? sC / cC : 0;

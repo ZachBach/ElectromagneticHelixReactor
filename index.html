@@ -1,8 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EHR — Electromagnetic Helix Reactor · Plasma Digital Twin</title>
+<meta name="description" content="A reduced-physics digital twin of a helical-antenna plasma reactor: Boris-pushed macro-electrons, Monte-Carlo collisions, and a live 3D render, testing whether RF/field helicity match (M≈1) actually drives coupling.">
+<meta name="theme-color" content="#04070b">
+<meta property="og:title" content="EHR — Electromagnetic Helix Reactor">
+<meta property="og:description" content="Interactive plasma-reactor digital twin: tune RF and magnetic helicity, watch coupling emerge (or not) in real time.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2304070b'/%3E%3Cpath d='M8 24 Q16 6 24 24' fill='none' stroke='%233fd9ff' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='15' r='2.4' fill='%235cf2a6'/%3E%3C/svg%3E">
 <script src="./support.js"></script>
 </head>
 <body>
@@ -572,13 +579,16 @@ class Component extends DCLogic {
   async _boot() {
     const t0 = Date.now();
     while (!(window.EHREngine && window.EHRPlots && window.EHRView3D && window.EHRDust)) {
-      if (Date.now() - t0 > 12000) { this.setState({ phase: 'error', err: 'MODULE LOAD TIMEOUT' }); return; }
+      if (Date.now() - t0 > 12000) { if (this.mounted) this.setState({ phase: 'error', err: 'MODULE LOAD TIMEOUT' }); return; }
       await new Promise(r => setTimeout(r, 60));
+      if (!this.mounted) return;
     }
     this.engine = new window.EHREngine(this.qualityN());
+    if (!this.mounted) return;
     this.setState({ phase: 'warm' });
     try {
       const mod = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+      if (!this.mounted) return;
       if (this.c3d.current) {
         this.view = new window.EHRView3D(mod, this.c3d.current, this.engine);
         this.view.setColormap(this.cmapIdx());
@@ -587,6 +597,7 @@ class Component extends DCLogic {
     } catch (e) {
       this.webglErr = '3D VIEW UNAVAILABLE — ' + (e.message || 'WebGL/CDN error');
     }
+    if (!this.mounted) { if (this.view) { this.view.dispose(); this.view = null; } return; }
     this.setState({ phase: 'ready' });
     this._last = 0;
     this._raf = requestAnimationFrame(this._tick);
@@ -599,7 +610,7 @@ class Component extends DCLogic {
     const e = this.engine;
     if (e) {
       if (this.state.running) e.step(dt);
-      if (e.geomDirty && this.view) {
+      if (e.geomDirty && this.view && this.state.tab === 'sim') {
         this._geomAcc = (this._geomAcc || 0) + dt;
         if (this._geomAcc > 260) { this._geomAcc = 0; e.geomDirty = false; this.view.rebuildGeometry(); }
       }
@@ -648,7 +659,8 @@ class Component extends DCLogic {
       }
       // GPI
       if (this.gpiC.current) {
-        P.heat(this.gpiC.current, e.gpi, 64, 64, { palette: 'inferno', circleMask: true, gamma: 0.55 });
+        const gpiPalette = ['plasma', 'ice', 'ember'][this.cmapIdx()] || 'inferno';
+        P.heat(this.gpiC.current, e.gpi, 64, 64, { palette: gpiPalette, circleMask: true, gamma: 0.55 });
       }
       // axial
       if (this.axialC.current) {

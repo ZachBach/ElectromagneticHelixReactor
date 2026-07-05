@@ -38,6 +38,13 @@
       this.n = n;
       if (!n) this.state = 'OFF';
     }
+
+    reseed() {
+      for (let i = 0; i < this.n; i++) this.spawn(i);
+      this.gofr.fill(0);
+      this.gamma = 0; this.kappa = 0; this.Td = 0; this.spacing = 0;
+      this.state = this.n ? 'GAS' : 'OFF';
+    }
     spawn(i) {
       this.pos[3 * i] = (Math.random() * 2 - 1) * 0.55;
       this.pos[3 * i + 1] = -0.05 - Math.random() * 0.6;
