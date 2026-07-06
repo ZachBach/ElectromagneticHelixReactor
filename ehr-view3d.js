@@ -325,15 +325,34 @@
 
     _bindOrbit() {
       const c = this.canvas, o = this.orbit;
-      let drag = false, lx = 0, ly = 0;
-      this._onPointerDown = e => { drag = true; lx = e.clientX; ly = e.clientY; c.setPointerCapture(e.pointerId); };
+      let drag = false, lx = 0, ly = 0, pinchDist = 0;
+      const pts = new Map(); // pointerId -> {x,y}, tracks active touches for pinch-zoom
+      const pinchLen = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+      this._onPointerDown = e => {
+        pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        c.setPointerCapture(e.pointerId);
+        if (pts.size === 1) { drag = true; lx = e.clientX; ly = e.clientY; }
+        else if (pts.size === 2) { drag = false; pinchDist = pinchLen(); }
+      };
       this._onPointerMove = e => {
+        if (!pts.has(e.pointerId)) return;
+        pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pts.size >= 2) {
+          const d = pinchLen();
+          if (pinchDist > 0) o.dist = Math.min(14, Math.max(2.4, o.dist * (pinchDist / d)));
+          pinchDist = d;
+          return;
+        }
         if (!drag) return;
         o.theta -= (e.clientX - lx) * 0.0055;
         o.phi = Math.min(Math.PI - 0.12, Math.max(0.12, o.phi - (e.clientY - ly) * 0.0055));
         lx = e.clientX; ly = e.clientY;
       };
-      this._onPointerUp = () => { drag = false; };
+      this._onPointerUp = e => {
+        pts.delete(e.pointerId);
+        if (pts.size === 1) { const [p] = [...pts.values()]; drag = true; lx = p.x; ly = p.y; pinchDist = 0; }
+        else { drag = false; pinchDist = 0; }
+      };
       this._onWheel = e => {
         e.preventDefault();
         o.dist = Math.min(14, Math.max(2.4, o.dist * Math.exp(e.deltaY * 0.0011)));

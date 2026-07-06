@@ -32,7 +32,7 @@ The central motivation is to move beyond fixed-geometry sources toward a reactor
 
 \section{System Architecture}
 
-The EHR consists of a cylindrical vacuum chamber, a multi-coil electromagnet producing a helical static field, an RF antenna for $m=1$ helicon excitation, wall-mounted piezoelectric acoustic transducers, and an electrostatic wafer chuck with independent RF bias.
+The EHR consists of a cylindrical vacuum chamber, a multi-coil electromagnet producing a helical static field, an RF antenna for $m=1$ helicon excitation, wall-mounted piezoelectric acoustic transducers, and an electrostatic wafer chuck with independent RF bias (Fig.~\ref{fig:tool}).
 
 \begin{figure}[htbp]
 \centering
@@ -87,7 +87,7 @@ B_z(r) = B_0 J_0(\alpha r), \quad B_\theta(r) = B_0 J_1(\alpha r).
 \label{eq:forcefree}
 \end{equation}
 
-The dynamic electromagnetic drive is realized through a helicon $m=1$ mode:
+The dynamic electromagnetic drive is realized through a helicon $m=1$ mode (Fig.~\ref{fig:fieldlines}):
 \begin{equation}
 \tilde{\mathbf{B}}(r,\theta,z,t) \propto f(r)\exp[i(\theta + kz - \omega t)].
 \label{eq:helicon}
@@ -111,19 +111,40 @@ The dynamic electromagnetic drive is realized through a helicon $m=1$ mode:
 \section{Magnetization Regime}
 \label{sec:magnetization}
 
-The proposed baseline operating point uses argon at 10~mTorr with an axial field of 100~G. At this condition, electrons are strongly magnetized while ions remain unmagnetized. This regime is consistent with conventional helicon sources. As the magnetic field is increased toward approximately 1~kG, ions begin to magnetize, providing a clear physical regime boundary that can be explored experimentally.
+The proposed baseline operating point uses argon at 10~mTorr with an axial field of 100~G. Whether a species is magnetized is set by its Hall parameter, the ratio of cyclotron frequency to collision frequency with the neutral background:
+\begin{equation}
+H_s = \frac{\omega_{c,s}}{\nu_{s,n}} = \frac{q_s B / m_s}{n_n \sigma_{s,n} \bar{v}_{s}},
+\label{eq:hall}
+\end{equation}
+where $s \in \{e, i\}$ and $n_n$ is the neutral density set by the fill pressure. Species with $H_s \gg 1$ are magnetized; species with $H_s \lesssim 1$ are not. For argon at 10~mTorr ($n_n \approx 3\times10^{20}\ \mathrm{m}^{-3}$ at room temperature), electrons satisfy $H_e \gg 1$ already at tens of gauss, since $\omega_{ce}$ is large and electron-neutral collisionality is comparatively low. Ions, being $\sim\!7\times10^4$ times heavier, have a correspondingly smaller $\omega_{ci}$ at fixed $B$; at 100~G, $H_i \sim 0.1$--$0.3$ using representative ion-neutral cross sections $\sigma_{in} \sim 10^{-18}\ \mathrm{m}^2$, so ions remain unmagnetized while electrons are strongly magnetized. Raising $B$ toward $\sim$1~kG increases $H_i$ to order unity, marking the onset of ion magnetization and providing a clear, quantitatively grounded regime boundary that can be explored experimentally by scanning $B$ at fixed pressure.
 
 \section{Resonance-Matched Power Coupling}
 
-Efficient power deposition is achieved by coupling to the helicon mode, whose resonance condition links drive frequency, wavenumber, plasma density, and magnetic field through the helicon dispersion relation \cite{chenarnush1997,boswell1984,chen2015}.
+Efficient power deposition is achieved by coupling to the helicon mode, whose resonance condition links drive frequency, wavenumber, plasma density, and magnetic field through the helicon dispersion relation \cite{chenarnush1997,boswell1984,chen2015}. For the $m=1$ mode in the low-frequency (whistler) limit, this relation takes the form
+\begin{equation}
+\omega = \frac{k\, k_\perp\, B_0}{\mu_0 n_e e}\,,
+\label{eq:dispersion}
+\end{equation}
+where $k$ is the axial wavenumber set by the antenna, $k_\perp$ is the radial eigenvalue fixed by the boundary condition at the chamber wall, and $n_e$ is the electron density. Equation~\eqref{eq:dispersion} defines a resonance surface in $(\omega, k, B_0, n_e)$ space: at fixed antenna frequency and geometry, sweeping $B_0$ or allowing $n_e$ to respond self-consistently moves the operating point across this surface, producing the density peak identified as Prediction 2 in Section~\ref{sec:validation}.
 
 \section{Governing Equations}
 
-Single-particle motion obeys the Lorentz force. The fluid momentum equation includes an additional body-force term representing momentum transfer from the acoustically modulated neutral background.
+Single-particle motion obeys the Lorentz force,
+\begin{equation}
+m_s \frac{d\mathbf{v}}{dt} = q_s\left(\mathbf{E} + \mathbf{v}\times\mathbf{B}\right) + \mathbf{F}_{\mathrm{coll}},
+\label{eq:lorentz}
+\end{equation}
+with $\mathbf{B} = \mathbf{B}(r) + \tilde{\mathbf{B}}$ given by Eqs.~\eqref{eq:bfield}--\eqref{eq:helicon} and $\mathbf{F}_{\mathrm{coll}}$ the Monte-Carlo collision force with the neutral background. The corresponding fluid momentum equation is
+\begin{equation}
+m_s n_s \left(\frac{\partial \mathbf{u}_s}{\partial t} + \mathbf{u}_s\cdot\nabla \mathbf{u}_s\right) = q_s n_s\left(\mathbf{E} + \mathbf{u}_s\times\mathbf{B}\right) - \nabla p_s + \mathbf{F}_{\mathrm{ac}},
+\label{eq:fluid}
+\end{equation}
+where $\mathbf{F}_{\mathrm{ac}}$ is an additional body-force term representing momentum transfer from the acoustically modulated neutral background, and is nonzero only where the standing-wave drive of Section~\ref{sec:acoustic} is active.
 
 \section{Acoustic Standing-Wave Modulation}
+\label{sec:acoustic}
 
-Acoustic standing waves are proposed as an independent control channel acting on the neutral gas. At 10~mTorr, acoustic radiation forces are weak and damping is strong. The EHR is therefore positioned as a research platform to explore neutral-to-plasma coupling at the centimeter scale. Sustaining well-defined standing waves would require resonant drive or operation at moderately higher pressure.
+Acoustic standing waves are proposed as an independent control channel acting on the neutral gas (Fig.~\ref{fig:modes}). At 10~mTorr, acoustic radiation forces are weak and damping is strong. The EHR is therefore positioned as a research platform to explore neutral-to-plasma coupling at the centimeter scale. Sustaining well-defined standing waves would require resonant drive or operation at moderately higher pressure.
 
 \begin{figure}[htbp]
 \centering
@@ -200,7 +221,7 @@ The Electromagnetic Helix Reactor proposes an integrated architecture in which a
 \section*{Authorship Statement}
 This work was developed and authored solely by Zachary Auerbach with no external funding or collaborators.
 
-\begin{thebibliography}{40}
+\begin{thebibliography}{99}
 \bibitem{lieberman} M.~A. Lieberman and A.~J. Lichtenberg, \textit{Principles of Plasma Discharges and Materials Processing}, 2nd ed., Wiley, 2005.
 \bibitem{chabert} P.~Chabert and N.~Braithwaite, \textit{Physics of Radio-Frequency Plasmas}, Cambridge University Press, 2011.
 \bibitem{oehrlein2018} G.~S. Oehrlein and S.~Hamaguchi, ``Foundations of low-temperature plasma enhanced materials synthesis and etching,'' \textit{Plasma Sources Sci. Technol.} \textbf{27}, 023001 (2018).
