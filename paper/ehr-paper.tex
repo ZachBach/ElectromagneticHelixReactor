@@ -19,7 +19,7 @@ This paper proposes the Electromagnetic Helix Reactor (EHR), a multi-physics pla
 
 \section{Introduction}
 
-Low-temperature plasmas are fundamental to semiconductor manufacturing, thin-film deposition, and surface modification. Conventional sources such as inductively coupled plasmas (ICP) and electron cyclotron resonance (ECR) sources typically operate with fixed magnetic geometries and single-mode excitation. Helicon sources have demonstrated high efficiency through whistler-wave coupling, while acoustic radiation forces are well established for structuring fluids and dusty plasmas.
+Low-temperature plasmas are fundamental to semiconductor manufacturing, thin-film deposition, and surface modification. Conventional sources such as inductively coupled plasmas (ICP) and electron cyclotron resonance (ECR) sources typically operate with fixed magnetic geometries and single-mode excitation \cite{lieberman,chabert,oehrlein2018,asmussen1989}. Helicon sources have demonstrated high efficiency through whistler-wave coupling \cite{boswell1984,chen2015}, while acoustic radiation forces are well established for structuring fluids and dusty plasmas \cite{gorkov1962,bruus2012}.
 
 The EHR integrates three elements into a single architecture:
 \begin{itemize}
@@ -81,7 +81,7 @@ L_p(r) = \frac{2\pi r\, B_z(r)}{B_\theta(r)}.
 \label{eq:pitch}
 \end{equation}
 
-This pitch constitutes a programmable control variable. A force-free realization is provided by the constant-$\alpha$ Beltrami field:
+This pitch constitutes a programmable control variable. A force-free realization is provided by the constant-$\alpha$ Beltrami field \cite{freidberg}:
 \begin{equation}
 B_z(r) = B_0 J_0(\alpha r), \quad B_\theta(r) = B_0 J_1(\alpha r).
 \label{eq:forcefree}
@@ -115,7 +115,7 @@ The proposed baseline operating point uses argon at 10~mTorr with an axial field
 
 \section{Resonance-Matched Power Coupling}
 
-Efficient power deposition is achieved by coupling to the helicon mode, whose resonance condition links drive frequency, wavenumber, plasma density, and magnetic field through the helicon dispersion relation.
+Efficient power deposition is achieved by coupling to the helicon mode, whose resonance condition links drive frequency, wavenumber, plasma density, and magnetic field through the helicon dispersion relation \cite{chenarnush1997,boswell1984,chen2015}.
 
 \section{Governing Equations}
 
@@ -152,7 +152,7 @@ The architecture targets improved across-wafer uniformity in processes such as t
 Three falsifiable predictions are defined at the baseline operating point of Section~\ref{sec:magnetization}:
 
 \begin{enumerate}
-    \item The $m=1$ helicon mode can be directly measured with a phase-resolved B-dot probe array and shown to satisfy the helicon dispersion relation.
+    \item The $m=1$ helicon mode can be directly measured with a phase-resolved B-dot probe array \cite{hutchinson} and shown to satisfy the helicon dispersion relation.
     \item Scanning the drive frequency or magnetic field strength through the helicon resonance condition produces a measurable peak in plasma density.
     \item Acoustic standing-wave drive imprints measurable centimeter-scale periodic modulation on both the neutral gas density and the plasma density.
 \end{enumerate}
@@ -161,7 +161,7 @@ Failure of the third prediction would indicate that acoustic modulation does not
 
 \section{Dusty Plasma Dynamics and Ion Drag}
 
-When micron-sized particles are introduced into the plasma, they acquire substantial negative charge and experience several forces. The ion drag force, arising from both direct ion collection and Coulomb scattering, is often dominant in low-pressure discharges and governs dust transport, void formation, and dust-acoustic waves.
+When micron-sized particles are introduced into the plasma, they acquire substantial negative charge and experience several forces. The ion drag force, arising from both direct ion collection and Coulomb scattering, is often dominant in low-pressure discharges and governs dust transport, void formation, and dust-acoustic waves \cite{goree2020}.
 
 The EHR architecture offers experimental handles that are not readily available in conventional dusty plasma devices. The tunable helical magnetic field allows controlled modification of ion flow patterns through changes in field-line pitch at constant $|B|$. Acoustic standing-wave modulation provides an external means to influence the neutral gas background, which, through ion-neutral collisions, can affect local ion trajectories and the resulting ion drag.
 
