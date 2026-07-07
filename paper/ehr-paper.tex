@@ -118,6 +118,15 @@ H_s = \frac{\omega_{c,s}}{\nu_{s,n}} = \frac{q_s B / m_s}{n_n \sigma_{s,n} \bar{
 \end{equation}
 where $s \in \{e, i\}$ and $n_n$ is the neutral density set by the fill pressure. Species with $H_s \gg 1$ are magnetized; species with $H_s \lesssim 1$ are not. For argon at 10~mTorr ($n_n \approx 3\times10^{20}\ \mathrm{m}^{-3}$ at room temperature), electrons satisfy $H_e \gg 1$ already at tens of gauss, since $\omega_{ce}$ is large and electron-neutral collisionality is comparatively low. Ions, being $\sim\!7\times10^4$ times heavier, have a correspondingly smaller $\omega_{ci}$ at fixed $B$; at 100~G, $H_i \sim 0.1$--$0.3$ using representative ion-neutral cross sections $\sigma_{in} \sim 10^{-18}\ \mathrm{m}^2$, so ions remain unmagnetized while electrons are strongly magnetized. Raising $B$ toward $\sim$1~kG increases $H_i$ to order unity, marking the onset of ion magnetization and providing a clear, quantitatively grounded regime boundary that can be explored experimentally by scanning $B$ at fixed pressure.
 
+Figure~\ref{fig:regime} maps these boundaries across the accessible $B$--$p$ space. The baseline operating point (A) sits well inside the electron-magnetized helicon band, and the proposed field scan traverses continuously to the onset of ion magnetization (B, where $H_i = 1$ at approximately 530~G for the parameters above) and beyond: the device can move from electron-only magnetization to combined electron--ion magnetization without changing gas conditions.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/ehr-regime-map.pdf}
+\caption{Operating-regime map for argon in the $B$--$p$ plane, with Hall-parameter contours from Eq.~\eqref{eq:hall}. Point A is the baseline operating point; point B marks the onset of ion magnetization ($H_i=1$) reached by the proposed field scan at fixed pressure. Regime boundaries depend on the assumed collision cross sections and characteristic particle velocities ($T_e = 3$~eV, $T_{\mathrm{gas}} = 300$~K, $\sigma_{en} = 2\times10^{-20}$~m$^2$, $\sigma_{in} = 10^{-18}$~m$^2$) and should be interpreted as order-of-magnitude estimates.}
+\label{fig:regime}
+\end{figure}
+
 \section{Resonance-Matched Power Coupling}
 
 Efficient power deposition is achieved by coupling to the helicon mode, whose resonance condition links drive frequency, wavenumber, plasma density, and magnetic field through the helicon dispersion relation \cite{chenarnush1997,boswell1984,chen2015}. For the $m=1$ mode in the low-frequency (whistler) limit, this relation takes the form
@@ -163,6 +172,21 @@ Acoustic standing waves are proposed as an independent control channel acting on
 \label{fig:modes}
 \end{figure}
 
+\section{Sanity-Check Scaling Estimates}
+\label{sec:scaling}
+
+The following order-of-magnitude estimates, all at the baseline operating point (argon, 10~mTorr, 100~G, $T_e = 3$~eV, $T_{\mathrm{gas}} = 300$~K), make the assumptions behind the proposed architecture explicit and auditable.
+
+\begin{itemize}
+    \item \textbf{Neutral density and mean free path.} $n_n = p / k_B T_{\mathrm{gas}} \approx 3.2\times10^{20}\ \mathrm{m}^{-3}$. With $\sigma_{nn} \sim 10^{-18}\ \mathrm{m}^2$, the neutral--neutral mean free path is $\lambda_n = (\sqrt{2}\, n_n \sigma_{nn})^{-1} \approx 2$~mm, giving a Knudsen number of order $10^{-2}$ for a 10-cm-scale chamber. The gas is only marginally in the continuum regime: classical acoustics applies, but damping is strong and textbook standing-wave behavior cannot be assumed.
+    \item \textbf{Electron magnetization.} With $\sigma_{en} \approx 2\times10^{-20}\ \mathrm{m}^2$ at a few eV, Eq.~\eqref{eq:hall} gives $H_e \approx 240$ at 100~G: electrons are strongly magnetized throughout the proposed operating range.
+    \item \textbf{Ion magnetization.} With $\sigma_{in} \approx 10^{-18}\ \mathrm{m}^2$, $H_i \approx 0.19$ at 100~G, crossing unity at $\approx 530$~G and reaching $\approx 1.9$ at 1~kG --- the basis for the regime boundary of Fig.~\ref{fig:regime}.
+    \item \textbf{Acoustic density modulation.} At 10~mTorr the background pressure is $P_0 \approx 1.33$~Pa. For acoustic pressure amplitudes $\Delta P = 0.01$--$0.1$~Pa, the expected neutral-density perturbation is $\Delta n_n / n_n \approx \Delta P / P_0 \approx 0.8$--$8\%$. The ability to achieve such amplitudes at 10~mTorr remains an experimental question and constitutes the primary uncertainty of the proposed acoustic-control channel.
+    \item \textbf{Helicon resonance range.} For a chamber radius $a = 0.1$~m ($k_\perp \approx 3.83/a \approx 38\ \mathrm{rad/m}$), an antenna wavenumber $k \approx 20\ \mathrm{rad/m}$, and $B_0 = 100$~G, Eq.~\eqref{eq:dispersion} places the resonance at $n_e \approx 4.5\times10^{17}\ \mathrm{m}^{-3}$ for a 13.56~MHz drive --- squarely within the density range of conventional helicon sources.
+\end{itemize}
+
+These estimates use representative cross sections and thermal velocities; the resulting numbers should be read as order-of-magnitude guides rather than predictions, and the sensitivity of each to the assumed parameters is itself a target for the validation program of Section~\ref{sec:validation}.
+
 \section{Applications}
 
 The architecture targets improved across-wafer uniformity in processes such as tungsten metallization and SiC etching. Magnetic field management near the wafer remains important to minimize non-uniformity and charging damage. The device is also proposed as a flexible platform for fundamental studies of helicon-acoustic coupling and dusty plasma dynamics under controlled conditions.
@@ -175,7 +199,7 @@ Three falsifiable predictions are defined at the baseline operating point of Sec
 \begin{enumerate}
     \item The $m=1$ helicon mode can be directly measured with a phase-resolved B-dot probe array \cite{hutchinson} and shown to satisfy the helicon dispersion relation.
     \item Scanning the drive frequency or magnetic field strength through the helicon resonance condition produces a measurable peak in plasma density.
-    \item Acoustic standing-wave drive imprints measurable centimeter-scale periodic modulation on both the neutral gas density and the plasma density.
+    \item Acoustic standing-wave drive imprints measurable centimeter-scale periodic modulation on both the neutral gas density and the plasma density. Given the amplitude estimates of Section~\ref{sec:scaling}, a reproducible modulation of $\Delta n/n \gtrsim 0.5$--$1\%$ synchronized with the acoustic drive would suffice to establish the coupling channel.
 \end{enumerate}
 
 Failure of the third prediction would indicate that acoustic modulation does not couple effectively to the plasma under the proposed conditions. Failure of pitch-dependent effects at constant $|B|$ and power would indicate that the tunable helical geometry does not provide meaningful additional control.

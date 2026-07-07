@@ -66,7 +66,7 @@ ax.contour(BB, PP, Hi, levels=[1], colors=[INK], linewidths=1.4)
 ci = ax.contour(BB, PP, Hi, levels=[0.01, 0.1, 10], colors=[MUTED],
                 linewidths=0.7, linestyles="dotted")
 ax.clabel(ci, fmt=lambda v: rf"$H_i={v:g}$", fontsize=7, colors=MUTED,
-          manual=[(0.9, 1.8), (60, 120), (3800, 6.5)])
+          manual=[(53, 100), (212, 40), (797, 1.5)])
 
 # region labels (direct labels: identity never rides on fill color alone)
 ax.text(0.35, 500, "UNMAGNETIZED\n$H_e<1$", fontsize=8, color=INK,
@@ -75,17 +75,28 @@ ax.text(20, 30, "ELECTRON-MAGNETIZED\n(helicon regime)  $H_e>1,\\ H_i<1$",
         fontsize=8.5, color=INK, ha="center", va="center")
 ax.text(1800, 2.6, "FULLY\nMAGNETIZED\n$H_i>1$", fontsize=8, color=INK,
         ha="center", va="center")
-ax.text(4.2, 900, "$H_e=1$", fontsize=8, color=INK, rotation=42)
-ax.text(600, 900, "$H_i=1$", fontsize=8, color=INK, rotation=42)
+ax.text(19, 300, "$H_e=1$", fontsize=8, color=INK, rotation=45)
+ax.text(2400, 30, "$H_i=1$", fontsize=8, color=INK, rotation=45)
 
-# EHR baseline point and proposed B-scan
-ax.plot([100], [10], marker="o", ms=7, mfc="#b91c1c", mec="white", mew=1.2, zorder=5)
+# operating points: A = baseline, B = ion-magnetization onset (H_i = 1), same pressure
+B_ONSET = 100.0 / hall(100, 10, MI, SIGMA_IN, VBAR_I)
 ax.annotate("", xy=(1000, 10), xytext=(115, 10),
             arrowprops=dict(arrowstyle="-|>", color="#b91c1c", lw=1.3))
-ax.text(100, 13.5, "EHR baseline\n100 G, 10 mTorr", fontsize=8, color="#b91c1c",
-        ha="center", va="bottom")
-ax.text(1000, 7.2, "proposed\n$B$ scan", fontsize=7.5, color="#b91c1c",
-        ha="center", va="top")
+ax.plot([100], [10], marker="o", ms=7, mfc="#b91c1c", mec="white", mew=1.2, zorder=5)
+ax.plot([B_ONSET], [10], marker="s", ms=6.5, mfc="white", mec="#b91c1c", mew=1.4, zorder=5)
+ax.text(100, 13.5, "A", fontsize=9, fontweight="bold", color="#b91c1c", ha="center", va="bottom")
+ax.text(B_ONSET, 13.5, "B", fontsize=9, fontweight="bold", color="#b91c1c", ha="center", va="bottom")
+ax.text(12, 2.05,
+        "A: baseline (100 G, 10 mTorr)\n"
+        rf"B: ion-magnetization onset ($H_i=1$, $\approx${B_ONSET:.0f} G)"
+        "\nred arrow: proposed $B$ scan",
+        fontsize=7.5, color="#b91c1c", ha="center", va="center")
+
+# the map explains itself: definition + scaling of the contoured quantity
+ax.text(0.85, 4.2,
+        r"$H_s=\dfrac{\omega_{c,s}}{\nu_{s,n}} \propto \dfrac{B}{p}$",
+        fontsize=9, color=INK, ha="center", va="center",
+        bbox=dict(boxstyle="round,pad=0.45", fc="white", ec=MUTED, lw=0.8, alpha=0.9))
 
 ax.set_xscale("log"); ax.set_yscale("log")
 ax.set_xlim(B[0], B[-1]); ax.set_ylim(p[0], p[-1])
