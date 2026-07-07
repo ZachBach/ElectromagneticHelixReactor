@@ -21,29 +21,28 @@ This simulator is the companion digital twin for the paper **"Electromagnetic He
 
 ## Architecture
 
-This is a **static, no-build, single-page app** — there's no bundler or server. `index.html` embeds a small custom component template (`<x-dc>`) that `support.js` (the "dc-runtime") parses and mounts as a React component, loading React/ReactDOM/Babel from a CDN at runtime. The physics engine, dust module, chart helpers, and 3D view are plain global-scope scripts loaded as `<script>` tags — no imports, no `node_modules` at runtime.
+This is a **static, no-build, single-page app** — there's no bundler or server. `index.html` embeds a small custom component template (`<x-dc>`) that `support.js` (the "dc-runtime") parses and mounts as a React component. React/ReactDOM/Babel, three.js, and the IBM Plex Mono font are all **self-hosted from [`vendor/`](vendor/)** (version-pinned, SRI-checked), so the app runs fully offline — no CDN required. The physics engine, dust module, chart helpers, and 3D view are plain global-scope scripts loaded as `<script>` tags — no imports, no `node_modules` at runtime.
 
 ```mermaid
 flowchart TD
-    subgraph Browser["Browser (no build step)"]
+    subgraph Browser["Browser (no build step, no CDN)"]
         HTML["index.html<br/>&lt;x-dc&gt; template + Component class"]
         Runtime["support.js<br/>dc-runtime: parses &lt;x-dc&gt;, mounts React"]
-        CDN1["unpkg.com<br/>React · ReactDOM · Babel standalone"]
+        Vendor["vendor/<br/>React · ReactDOM · Babel · three.js · fonts<br/>(self-hosted, SRI-checked)"]
         Comp["Component<br/>(React, tabs: SIMULATE / DIAGNOSTICS / PLOTS / GUIDE)"]
         Engine["ehr-engine.js<br/>EHREngine — Boris pusher, MC collisions,<br/>density grid, coupling models, sweeps"]
         Dust["ehr-dust.js<br/>EHRDust — ion drag, Yukawa pairs, Γ/κ/state"]
         Plots["ehr-plots.js<br/>EHRPlots — canvas line charts + heatmaps"]
         View["ehr-view3d.js<br/>EHRView3D — WebGL scene, field lines, particles"]
-        CDN2["jsdelivr.net<br/>three.js module"]
 
         HTML --> Runtime
-        Runtime -- "loads" --> CDN1
+        Runtime -- "loads" --> Vendor
         Runtime -- "mounts" --> Comp
         Comp -- "step(dt) / setParam()" --> Engine
         Engine --> Dust
         Comp -- "chart() / heat()" --> Plots
         Comp -- "update() / rebuildGeometry()" --> View
-        View -- "loads" --> CDN2
+        View -- "loads three.js" --> Vendor
         Engine -. "density grid, diag, dust.pos" .-> View
         Engine -. "series data" .-> Plots
     end
@@ -83,7 +82,7 @@ Or connect the repo in the [Vercel dashboard](https://vercel.com/new) — no fra
 ## Notes & known limitations
 
 - Reduced/normalized-unit model — analytic fields, macro-particles, a coarse 64×64×128 grid. Trust trends and comparisons between settings, not absolute values.
-- The 3D view depends on a runtime `three.js` fetch from jsdelivr; if that CDN is unreachable the app still runs, just without the 3D pane (an on-screen note explains why).
+- All runtime dependencies (React, ReactDOM, Babel standalone, three.js, IBM Plex Mono) are pinned and self-hosted in [`vendor/`](vendor/) — the app works with no internet access. To upgrade one, replace the file and update the matching SRI hash in `support.js`.
 
 ## License
 
