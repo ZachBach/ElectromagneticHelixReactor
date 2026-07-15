@@ -5,16 +5,20 @@
 \usepackage{tikz}
 \usetikzlibrary{calc,patterns,arrows.meta}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\hypersetup{
+  pdftitle={Electromagnetic Helix Reactor (EHR): A Multi-Physics Plasma Control Architecture for Advanced Plasma Processing},
+  pdfauthor={Zachary Auerbach}
+}
 
 \title{Electromagnetic Helix Reactor (EHR): \\ A Multi-Physics Plasma Control Architecture for Advanced Plasma Processing}
 \author{Zachary Auerbach}
-\date{July 4, 2026}
+\date{July 15, 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This paper proposes the Electromagnetic Helix Reactor (EHR), a multi-physics plasma source architecture that integrates a tunable helical magnetic field, helicon-wave excitation with resonance-matched coupling, and acoustic standing-wave modulation of the neutral gas. The design aims to provide new degrees of spatial control in low-temperature plasmas relevant to semiconductor processing. The baseline operating regime is the magnetized-electron, unmagnetized-ion regime characteristic of helicon sources. Three falsifiable experimental predictions are outlined to test the core elements of the proposed architecture.
+This paper proposes the Electromagnetic Helix Reactor (EHR), a multi-physics plasma source architecture that integrates a tunable helical magnetic field, helicon-wave excitation with resonance-matched coupling, and acoustic standing-wave modulation of the neutral gas. The design aims to provide new degrees of spatial control in low-temperature plasmas relevant to semiconductor processing. The baseline operating regime is the magnetized-electron, unmagnetized-ion regime characteristic of helicon sources. Four falsifiable experimental predictions are outlined to test the core elements of the proposed architecture.
 \end{abstract}
 
 \section{Introduction}
@@ -182,7 +186,7 @@ The following order-of-magnitude estimates, all at the baseline operating point 
     \item \textbf{Electron magnetization.} With $\sigma_{en} \approx 2\times10^{-20}\ \mathrm{m}^2$ at a few eV, Eq.~\eqref{eq:hall} gives $H_e \approx 240$ at 100~G: electrons are strongly magnetized throughout the proposed operating range.
     \item \textbf{Ion magnetization.} With $\sigma_{in} \approx 10^{-18}\ \mathrm{m}^2$, $H_i \approx 0.19$ at 100~G, crossing unity at $\approx 530$~G and reaching $\approx 1.9$ at 1~kG --- the basis for the regime boundary of Fig.~\ref{fig:regime}.
     \item \textbf{Acoustic density modulation.} At 10~mTorr the background pressure is $P_0 \approx 1.33$~Pa. For acoustic pressure amplitudes $\Delta P = 0.01$--$0.1$~Pa, the expected neutral-density perturbation is $\Delta n_n / n_n \approx \Delta P / P_0 \approx 0.8$--$8\%$. The ability to achieve such amplitudes at 10~mTorr remains an experimental question and constitutes the primary uncertainty of the proposed acoustic-control channel.
-    \item \textbf{Helicon resonance range.} For a chamber radius $a = 0.1$~m ($k_\perp \approx 3.83/a \approx 38\ \mathrm{rad/m}$), an antenna wavenumber $k \approx 20\ \mathrm{rad/m}$, and $B_0 = 100$~G, Eq.~\eqref{eq:dispersion} places the resonance at $n_e \approx 4.5\times10^{17}\ \mathrm{m}^{-3}$ for a 13.56~MHz drive --- squarely within the density range of conventional helicon sources.
+    \item \textbf{Helicon resonance range.} For a chamber radius $R = 0.1$~m ($k_\perp \approx 3.83/R \approx 38\ \mathrm{rad/m}$), an antenna wavenumber $k \approx 20\ \mathrm{rad/m}$, and $B_0 = 100$~G, Eq.~\eqref{eq:dispersion} places the resonance at $n_e \approx 4.5\times10^{17}\ \mathrm{m}^{-3}$ for a 13.56~MHz drive --- squarely within the density range of conventional helicon sources.
 \end{itemize}
 
 These estimates use representative cross sections and thermal velocities; the resulting numbers should be read as order-of-magnitude guides rather than predictions, and the sensitivity of each to the assumed parameters is itself a target for the validation program of Section~\ref{sec:validation}.
@@ -194,15 +198,16 @@ The architecture targets improved across-wafer uniformity in processes such as t
 \section{Proposed Experimental Validation}
 \label{sec:validation}
 
-Three falsifiable predictions are defined at the baseline operating point of Section~\ref{sec:magnetization}:
+Four falsifiable predictions are defined at the baseline operating point of Section~\ref{sec:magnetization}:
 
 \begin{enumerate}
     \item The $m=1$ helicon mode can be directly measured with a phase-resolved B-dot probe array \cite{hutchinson} and shown to satisfy the helicon dispersion relation.
     \item Scanning the drive frequency or magnetic field strength through the helicon resonance condition produces a measurable peak in plasma density.
     \item Acoustic standing-wave drive imprints measurable centimeter-scale periodic modulation on both the neutral gas density and the plasma density. Given the amplitude estimates of Section~\ref{sec:scaling}, a reproducible modulation of $\Delta n/n \gtrsim 0.5$--$1\%$ synchronized with the acoustic drive would suffice to establish the coupling channel.
+    \item Scanning the field-line pitch of Eq.~\eqref{eq:pitch} via the coil-current ratio, at constant $|B|$ and RF power, produces measurable changes in the coupled power and plasma density profile.
 \end{enumerate}
 
-Failure of the third prediction would indicate that acoustic modulation does not couple effectively to the plasma under the proposed conditions. Failure of pitch-dependent effects at constant $|B|$ and power would indicate that the tunable helical geometry does not provide meaningful additional control.
+Failure of the third prediction would indicate that acoustic modulation does not couple effectively to the plasma under the proposed conditions. Failure of the fourth --- no pitch-dependent effects at constant $|B|$ and power --- would indicate that the tunable helical geometry does not provide meaningful additional control.
 
 \section{Dusty Plasma Dynamics and Ion Drag}
 
@@ -216,7 +221,7 @@ Micron-sized dust particles in a plasma acquire large negative charges and inter
 \begin{equation}
 \Gamma = \frac{Q_d^2}{4\pi\epsilon_0 a k_B T_d} \exp\left( -\frac{a}{\lambda_D} \right)
 \end{equation}
-becomes sufficiently large, the particles can self-organize into ordered crystalline structures known as plasma crystals. In two-dimensional laboratory systems, strong ordering is typically observed for $\Gamma \gtrsim 130$--$150$ \cite{melzer1996}. In three-dimensional Yukawa systems, the melting transition generally occurs at higher values, typically $\Gamma \gtrsim 170$--$200$ for moderate screening, with the exact threshold depending on the screening parameter $\kappa = a / \lambda_D$ \cite{hamaguchi1997}.
+--- where $Q_d$ is the dust charge, $a$ the interparticle spacing, $T_d$ the dust kinetic temperature, and $\lambda_D$ the Debye screening length --- becomes sufficiently large, the particles can self-organize into ordered crystalline structures known as plasma crystals. In two-dimensional laboratory systems, strong ordering is typically observed for $\Gamma \gtrsim 130$--$150$ \cite{melzer1996}. In three-dimensional Yukawa systems, the melting transition generally occurs at higher values, typically $\Gamma \gtrsim 170$--$200$ for moderate screening, with the exact threshold depending on the screening parameter $\kappa = a / \lambda_D$ \cite{hamaguchi1997}.
 
 The EHR architecture offers experimental capabilities well suited to studying these strongly coupled regimes. The tunable helical magnetic field enables controlled modification of ion flow and ion wake structures, while acoustic modulation provides a means to externally influence dust kinetic temperature or drive the system across the crystallization threshold.
 
@@ -230,7 +235,7 @@ In a flowing dusty plasma, ions streaming past negatively charged dust particles
 \right],
 \label{eq:wake}
 \end{equation}
-where $z < 0$ is the downstream direction.
+where $r = \sqrt{r_\perp^2 + z^2}$, $z < 0$ is the downstream direction, $A$ is a dimensionless wake amplitude, $\ell_w$ is the wake decay length, and $k_z$ is the wake wavenumber set by the ion flow speed.
 
 When ions become magnetized, their trajectories transition from straight lines to helical motion. This modifies the wake structure, making the screening anisotropic and altering both the amplitude and spatial form of the wake-mediated interaction. The EHR architecture is designed to allow controlled investigation of this transition. At the baseline field of 100~G, ions remain unmagnetized. As the field is increased toward $\sim$1~kG, ions begin to magnetize. The tunable helical geometry further enables variation of the angle between $\mathbf{B}$ and the ion flow at fixed field strength.
 
@@ -240,7 +245,10 @@ The EHR combines established physical elements — helical magnetic fields, heli
 
 \section{Conclusion}
 
-The Electromagnetic Helix Reactor proposes an integrated architecture in which a tunable helical magnetic field, helicon drive, and acoustic modulation operate within a physically consistent regime. A three-prediction experimental program provides clear criteria for validation or falsification. If successful, the concept offers a path toward improved spatial control in low-temperature plasma processing and a versatile platform for fundamental studies of wave-driven and dusty plasmas under controlled ion flow conditions.
+The Electromagnetic Helix Reactor proposes an integrated architecture in which a tunable helical magnetic field, helicon drive, and acoustic modulation operate within a physically consistent regime. A four-prediction experimental program provides clear criteria for validation or falsification. If successful, the concept offers a path toward improved spatial control in low-temperature plasma processing and a versatile platform for fundamental studies of wave-driven and dusty plasmas under controlled ion flow conditions.
+
+\section*{Code Availability}
+An interactive, browser-based reduced-physics simulator of the EHR concept --- implementing the helical field models, Boris-integrated electron dynamics with Monte-Carlo collisions, helicon coupling models, synthetic diagnostics, and the dusty-plasma module discussed here --- is openly available at \url{https://github.com/ZachBach/ElectromagneticHelixReactor}.
 
 \section*{Authorship Statement}
 This work was developed and authored solely by Zachary Auerbach with no external funding or collaborators.
@@ -249,17 +257,17 @@ This work was developed and authored solely by Zachary Auerbach with no external
 \bibitem{lieberman} M.~A. Lieberman and A.~J. Lichtenberg, \textit{Principles of Plasma Discharges and Materials Processing}, 2nd ed., Wiley, 2005.
 \bibitem{chabert} P.~Chabert and N.~Braithwaite, \textit{Physics of Radio-Frequency Plasmas}, Cambridge University Press, 2011.
 \bibitem{oehrlein2018} G.~S. Oehrlein and S.~Hamaguchi, ``Foundations of low-temperature plasma enhanced materials synthesis and etching,'' \textit{Plasma Sources Sci. Technol.} \textbf{27}, 023001 (2018).
-\bibitem{boswell1984} R.~W. Boswell, \textit{Plasma Phys. Control. Fusion} \textbf{26}, 1147 (1984).
-\bibitem{chen2015} F.~F. Chen, \textit{Plasma Sources Sci. Technol.} \textbf{24}, 014001 (2015).
-\bibitem{chenarnush1997} F.~F. Chen and D.~Arnush, \textit{Phys. Plasmas} \textbf{4}, 3411 (1997).
-\bibitem{asmussen1989} J.~Asmussen, \textit{J. Vac. Sci. Technol. A} \textbf{7}, 883 (1989).
-\bibitem{gorkov1962} L.~P. Gor'kov, \textit{Sov. Phys. Dokl.} \textbf{6}, 773 (1962).
-\bibitem{bruus2012} H.~Bruus, \textit{Lab Chip} \textbf{12}, 1014 (2012).
+\bibitem{boswell1984} R.~W. Boswell, ``Very efficient plasma generation by whistler waves near the lower hybrid frequency,'' \textit{Plasma Phys. Control. Fusion} \textbf{26}, 1147 (1984).
+\bibitem{chen2015} F.~F. Chen, ``Helicon discharges and sources: a review,'' \textit{Plasma Sources Sci. Technol.} \textbf{24}, 014001 (2015).
+\bibitem{chenarnush1997} F.~F. Chen and D.~Arnush, ``Generalized theory of helicon waves. I. Normal modes,'' \textit{Phys. Plasmas} \textbf{4}, 3411 (1997).
+\bibitem{asmussen1989} J.~Asmussen, ``Electron cyclotron resonance microwave discharges for etching and thin-film deposition,'' \textit{J. Vac. Sci. Technol. A} \textbf{7}, 883 (1989).
+\bibitem{gorkov1962} L.~P. Gor'kov, ``On the forces acting on a small particle in an acoustical field in an ideal fluid,'' \textit{Sov. Phys. Dokl.} \textbf{6}, 773 (1962).
+\bibitem{bruus2012} H.~Bruus, ``Acoustofluidics 7: The acoustic radiation force on small particles,'' \textit{Lab Chip} \textbf{12}, 1014 (2012).
 \bibitem{goree2020} J.~Goree \textit{et al.}, \textit{Phys. Plasmas} \textbf{27}, 123701 (2020).
 \bibitem{hutchinson} I.~H. Hutchinson, \textit{Principles of Plasma Diagnostics}, 2nd ed., Cambridge University Press, 2002.
 \bibitem{freidberg} J.~P. Freidberg, \textit{Ideal MHD}, Cambridge University Press, 2014.
-\bibitem{melzer1996} A.~Melzer, A.~Homann, and A.~Piel, \textit{Phys. Rev. E} \textbf{53}, 2757 (1996).
-\bibitem{hamaguchi1997} S.~Hamaguchi, R.~T. Farouki, and D.~H.~E. Dubin, \textit{Phys. Rev. E} \textbf{56}, 4671 (1997).
+\bibitem{melzer1996} A.~Melzer, A.~Homann, and A.~Piel, ``Experimental investigation of the melting transition of the plasma crystal,'' \textit{Phys. Rev. E} \textbf{53}, 2757 (1996).
+\bibitem{hamaguchi1997} S.~Hamaguchi, R.~T. Farouki, and D.~H.~E. Dubin, ``Triple point of Yukawa systems,'' \textit{Phys. Rev. E} \textbf{56}, 4671 (1997).
 \end{thebibliography}
 
 \end{document}

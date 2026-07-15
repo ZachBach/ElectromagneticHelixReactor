@@ -14,7 +14,7 @@
 </head>
 <body style="margin:0;background:#04070b;">
 <!-- Pre-mount loader: plain HTML/CSS outside the app template, so it paints
-     immediately while the runtime fetches React/Babel from the CDN. Dismissal
+     immediately while the runtime loads React/Babel from vendor/. Dismissal
      is pure CSS (body:has rule below). NOTE: never write the app's custom tag
      name inside comments here - the runtime extracts the template with a
      regex over raw source, and a literal mention poisons the extraction. -->
@@ -31,7 +31,7 @@
     <div style="width:34px;height:34px;margin:0 auto 18px;border:2px solid #16232f;border-top-color:#3fd9ff;border-radius:50%;animation:ehrprespin .9s linear infinite;"></div>
     <div style="font-size:15px;letter-spacing:4px;color:#3fd9ff;">EHR // <span style="display:inline-grid;vertical-align:baseline;">
       <span style="grid-area:1/1;animation:ehrmsgout .2s linear 20s forwards;">LOADING RUNTIME</span>
-      <span style="grid-area:1/1;opacity:0;animation:ehrmsgin .2s linear 20s forwards;">CDN SLOW OR UNREACHABLE</span>
+      <span style="grid-area:1/1;opacity:0;animation:ehrmsgin .2s linear 20s forwards;">RUNTIME SLOW OR UNREACHABLE</span>
     </span><span style="display:inline-block;width:9px;height:15px;background:#3fd9ff;margin-left:6px;vertical-align:-2px;animation:ehrpreblink 1s steps(1) infinite;"></span></div>
     <div style="font-size:10px;letter-spacing:2px;color:#43586c;margin-top:8px;">ELECTROMAGNETIC HELIX REACTOR · DIGITAL TWIN</div>
   </div>
@@ -695,7 +695,7 @@ class Component extends DCLogic {
         this.view.setLayers(this.state.layers);
       }
     } catch (e) {
-      this.webglErr = '3D VIEW UNAVAILABLE — ' + (e.message || 'WebGL/CDN error');
+      this.webglErr = '3D VIEW UNAVAILABLE — ' + (e.message || 'WebGL error');
     }
     if (!this.mounted) { if (this.view) { this.view.dispose(); this.view = null; } return; }
     this.setState({ phase: 'ready' });

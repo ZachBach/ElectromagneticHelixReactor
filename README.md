@@ -51,7 +51,7 @@ flowchart TD
 | File | Role |
 |---|---|
 | [`index.html`](index.html) | Page shell, `<x-dc>` template (all UI markup), and the `Component` class (React logic: tabs, sliders, presets, sweep/export handlers, per-tab draw loop). |
-| [`support.js`](support.js) | Generated dc-runtime bundle — parses the `<x-dc>` template/expression bindings (`{{ }}`, `sc-for`, `sc-if`), loads React/ReactDOM/Babel from CDN, and boots the component standalone. |
+| [`support.js`](support.js) | Generated dc-runtime bundle — parses the `<x-dc>` template/expression bindings (`{{ }}`, `sc-for`, `sc-if`), loads React/ReactDOM/Babel from [`vendor/`](vendor/), and boots the component standalone. |
 | [`ehr-engine.js`](ehr-engine.js) | The physics core: Boris-pushed electrons, Monte-Carlo ionization/collisions, 64×64×128 density grid, screw-pinch/Beltrami field models, KERNEL/EMERGENT/WAVE coupling, parameter sweeps. |
 | [`ehr-dust.js`](ehr-dust.js) | Dusty-plasma module: ion drag from the live density gradient, Yukawa pair forces, pair-correlation g(r), Γ/κ diagnostics and gas/liquid/crystal state. |
 | [`ehr-plots.js`](ehr-plots.js) | Tiny dependency-free canvas plotting library (line charts, heatmaps) used by every diagnostic pane. |
