@@ -1,0 +1,9 @@
+# Vendor assets are SRI-checked (support.js pins sha384 hashes) — they must
+# stay byte-exact across every checkout. Never CRLF-convert them.
+vendor/** -text
+
+# Binary assets
+*.woff2 binary
+*.png binary
+*.pdf binary
+.thumbnail binary
