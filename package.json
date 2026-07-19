@@ -6,6 +6,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "npx --yes serve . -l 5173",
-    "start": "npx --yes serve . -l 5173"
+    "start": "npx --yes serve . -l 5173",
+    "sim:selftest": "node sim/selftest.js",
+    "sim:pitch": "node sim/run-pitch-scan.js",
+    "sim:mechanism": "node sim/mechanism.js"
   }
 }

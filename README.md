@@ -61,6 +61,7 @@ flowchart TD
 | [`ehr-plots.js`](ehr-plots.js) | Tiny dependency-free canvas plotting library (line charts, heatmaps) used by every diagnostic pane. |
 | [`ehr-view3d.js`](ehr-view3d.js) | Three.js scene: chamber, antenna helix, field lines, electron point cloud, density volume raymarch, dust, wafer chuck, orbit camera. |
 | [`ehr-device.js`](ehr-device.js) | `EHRDevice` — classifies the viewport as mobile/tablet/desktop from size + pointer capability (not UA sniffing) and notifies subscribers on change; drives the responsive rail drawer and auto particle-count capping. |
+| [`sim/`](sim/README.md) | **Phase 1 research simulator** (headless Node, SI units): Boris pusher + Monte-Carlo collisions with absorbing walls, built to measure confinement time vs. field-line pitch at fixed \|B\| — the quantitative test of Prediction 4. Separate from the browser engine above; see [`sim/README.md`](sim/README.md) for physics, self-tests, and first results. |
 
 ## Running locally
 
