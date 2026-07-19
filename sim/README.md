@@ -20,6 +20,7 @@ npm run sim:selftest    # physics checks: Boris vs exact gyromotion, div B = 0,
 npm run sim:pitch       # the headline study (defaults below)
 npm run sim:mechanism   # free-streaming geometric model (mechanism layer 0)
 npm run sim:alpha -- sim/output/<scan>.csv   # fit the transport-law exponent
+npm run sim:ambipolar   # Phase 3: self-consistent E-field feedback study
 ```
 
 Options (`node sim/run-pitch-scan.js --key=value`):
@@ -248,8 +249,106 @@ The claims these runs support are the *existence, shape, mechanism, and
 scaling law* of the pitch dependence, which is exactly what Prediction 4 asks
 an experiment to test.
 
+## Phase 3 — ambipolar electric fields
+
+`poisson.js` solves the axisymmetric Poisson equation on a cell-centered
+(r,z) grid (finite volumes, SOR, grounded Dirichlet walls; validated against
+a manufactured solution to 0.01% — see selftest). `run-ambipolar.js` closes
+the loop: CIC deposit → ρ = e(n_i − n_e) → solve → E = −∇φ → Boris with
+half-E kicks, every 5 steps, over a **frozen ion background** equal to the
+initial electron cloud (immobile-ion approximation on electron timescales).
+
+Numerical validity (printed at startup, learned the hard way): the
+full-depletion potential e·n0·R²/4ε₀ must sit at a few Te — at helicon
+densities the frozen-ion quasi-static model runs away to kV; the default
+n0 = 3e11 m⁻³ caps it at 4.5 Te and resolves λ_D on the default grid.
+Feedback-off runs reproduce the Phase 1 runner within error bars from an
+independent ensemble-stepping implementation (cross-validation of both).
+
+**Does the pitch effect survive self-generated fields?** Screw field,
+100 G, 10 mTorr, ratios 0 / 1 / 3:
+
+| | τ_mean (µs) | survival at 20 µs | φ_well |
+|---|---|---|---|
+| feedback OFF | 1.02 / 1.19 / 2.76 | ~0% | — |
+| feedback ON | >6.9 / >7.1 / >8.1 | 22.3 / 23.2 / 24.2% | 11.5 V ≈ 3.8 Te |
+
+(Control at doubled n0: well deepens to ~6 Te and the same +10–18% pitch
+ordering holds, so the conclusion is not an artifact of the charge cap.)
+
+The ambipolar well **dominates and compresses the pitch effect** — from
+2.7× to ~1.1–1.2× under these conditions. Once the escape of the fast tail
+charges the plasma to a Te-scale potential, the barrier — whose depth is set
+by charge balance, not field geometry — controls electron loss, and it is
+nearly the same at every pitch. The pitch dependence survives only as a
+consistent ordering (survival, τ, and leak-phase transport all still rank
+with pitch) plus the familiar growth of the radial channel.
+
+**Interpretation, and the sharpened hypothesis.** This model freezes the
+ions, which at 100 G are unmagnetized (H_i ≈ 0.2 — the paper's own regime
+analysis) and therefore pitch-blind. In a real discharge the steady state is
+ambipolar: the potential adjusts until ion and electron losses balance, so
+bulk particle confinement tracks the *ion* channel — which ignores pitch
+below ion magnetization. The Phase 3 result therefore refines Prediction 4
+into a regime statement:
+
+> Below the ion-magnetization boundary, pitch should primarily shape
+> electron energy transport, profiles, and wall heat flux rather than bulk
+> particle confinement; strong pitch control of bulk confinement should
+> switch on across H_i ≈ 1 (≈530 G at 10 mTorr — point B on the paper's
+> regime map).
+
+That is directly testable by the paper's proposed B-field scan, and it is a
+falsifiable refinement this simulator produced rather than assumed.
+
+### Regime I structure: the well is flat, the profiles move
+
+Quantitative follow-up (`analyze-fields.js` on the per-ratio field
+snapshots; 6-point pitch scan, frozen ions, 10 µs):
+
+| ratio | φ_max V | surv% | τ_leak µs | radial% | ne peak radius m |
+|---|---|---|---|---|---|
+| 0 | 9.31 | 32.0 | 34.8 | 0.3 | 0.028 |
+| 0.5 | 9.53 | 31.8 | 33.9 | 0.6 | 0.032 |
+| 1 | 9.13 | 33.0 | 28.6 | 1.0 | 0.047 |
+| 1.5 | 9.34 | 30.3 | 22.3 | 1.3 | 0.045 |
+| 2 | 8.73 | 33.6 | 20.6 | 2.9 | 0.047 |
+| 3 | 10.01 | 34.9 | 17.6 | 3.8 | 0.045 |
+
+1. **The well is rigorously pitch-flat** — depth scatter ±7% with no trend,
+   and the *shape* is fixed too (radial half-max 0.061–0.068 m, axial FWHM
+   0.29–0.30 m at every ratio). This is the quantitative reason the
+   confinement gain collapses: the barrier that now controls loss simply
+   does not respond to field geometry.
+2. **Pitch opens the slow radial drain on the trapped population** — τ_leak
+   falls monotonically 34.8 → 17.6 µs as the parasitic radial channel
+   (Study C) grows from 0.3% to 3.8%. In Regime I, pitch trades a small
+   early-time confinement gain for a faster late-time leak: it redistributes
+   loss between channels rather than reducing it.
+3. **Pitch reshapes where the trapped electrons live** even though it cannot
+   deepen the well: the density peak moves off-axis by ~60% (0.028 →
+   0.045 m), the on-axis hollow partially fills only at ratio 3
+   (core/edge 0 → 0.41), and comparing the 10 µs and 20 µs snapshots the
+   high-pitch profile is *stationary in time* while the ratio-0 profile
+   degrades as the population decays (σ/μ 25.7% → 45.5% at ratio 0 vs
+   ~29–31% at both times for ratio 3). In an ambipolarly confined plasma,
+   pitch acts on the density *distribution* — the processing-relevant
+   quantity — not on the barrier.
+
+Proving the ion side numerically needs mobile ions, which the runner now
+supports (`--ions=mobile`, with `--mion` setting a reduced ion/neutral mass
+so the H_i = 1 boundary falls in an affordable field range; Γ_i/Γ_e → 1 is
+reported as the ambipolar-equilibrium check). The B-scan crossing H_i = 1 —
+pitch gain vs ion Hall parameter — is the current experiment.
+
 ## Roadmap position
 
-Phase 1 (this) → Phase 2 diagnostics (density profiles per pitch — the
-deposition grid is already here behind `--density`) → Phase 3 Poisson/sheath →
-Phase 4 helicon coupling models → Phase 5 dusty plasma.
+The project's driving question has evolved with the results: from
+"pitch → confinement" (Phase 1, answered: yes, via a validated geometric
+transport law) to "pitch → density distribution → potential structure →
+transport" (Phase 3: the plasma's self-organization decides which pitch
+effects survive). Current sequence: mobile-ion B-scan across H_i = 1
+(in progress — the direct test of the regime-gated hypothesis) → floating
+walls / sheath model → biased wafer chuck → helicon coupling models →
+dusty plasma. RF wave solvers and full PIC remain deliberately out of scope
+until the electrostatic story is complete.

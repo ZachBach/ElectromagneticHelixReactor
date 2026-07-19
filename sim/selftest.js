@@ -110,6 +110,29 @@ function check(name, ok, detail) {
     `worst rel err ${worst.toExponential(1)}`);
 }
 
+// ---- 3b. Poisson solver vs manufactured solution ----
+{
+  const { PoissonRZ } = require('./poisson');
+  const Nr = 64, Nz = 128, R = 0.1, L = 0.4;
+  const p = new PoissonRZ(Nr, Nz, R, L);
+  // phi* = (1-(r/R)²)·sin(pi z/L) → lap(phi*) = -[4/R² + (pi/L)²(1-(r/R)²)]·sin(pi z/L)
+  const S = new Float64Array(Nr * Nz), exact = new Float64Array(Nr * Nz);
+  for (let j = 0; j < Nz; j++) {
+    const z = (j + 0.5) * (L / Nz), sz = Math.sin((Math.PI * z) / L);
+    for (let i = 0; i < Nr; i++) {
+      const r = (i + 0.5) * (R / Nr), g = 1 - (r / R) ** 2;
+      exact[j * Nr + i] = g * sz;
+      S[j * Nr + i] = (4 / (R * R) + ((Math.PI / L) ** 2) * g) * sz;
+    }
+  }
+  const sweeps = p.solve(S, { maxIter: 8000, tol: 1e-7 });
+  let e2 = 0, x2 = 0;
+  for (let c = 0; c < Nr * Nz; c++) { const d = p.phi[c] - exact[c]; e2 += d * d; x2 += exact[c] * exact[c]; }
+  const rel = Math.sqrt(e2 / x2);
+  check('Poisson vs manufactured solution', rel < 0.02,
+    `rel L2 err ${(rel * 100).toFixed(2)}% in ${sweeps} sweeps`);
+}
+
 // ---- 4. MCC electron collision rate vs analytic nu(E) ----
 {
   const nn = C.neutralDensity(10, 300);

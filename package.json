@@ -10,6 +10,7 @@
     "sim:selftest": "node sim/selftest.js",
     "sim:pitch": "node sim/run-pitch-scan.js",
     "sim:mechanism": "node sim/mechanism.js",
-    "sim:alpha": "node sim/fit-alpha.js"
+    "sim:alpha": "node sim/fit-alpha.js",
+    "sim:ambipolar": "node sim/run-ambipolar.js"
   }
 }

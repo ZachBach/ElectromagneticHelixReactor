@@ -109,9 +109,12 @@ function ionMaxRate(nn, vRef) {
   return nn * (C.SIGMA_CX + C.SIGMA_I_EL) * vRef;
 }
 
-/* Returns { collide(vel, i3) → 0 none | 1 elastic | 2 charge exchange }. */
-function makeIonCollider(nn, Tgas, dt, rng, gauss) {
-  const vthn = Math.sqrt((C.KB * Tgas) / C.MAR); // per-component neutral thermal
+/* Returns { collide(vel, i3) → 0 none | 1 elastic | 2 charge exchange }.
+   mIon (kg) sets the ion AND neutral mass — CX partners are the same species
+   (defaults to argon; reduced-mass model gases pass a lighter value). */
+function makeIonCollider(nn, Tgas, dt, rng, gauss, mIon) {
+  const m = mIon || C.MAR;
+  const vthn = Math.sqrt((C.KB * Tgas) / m); // per-component neutral thermal
   const sigTot = C.SIGMA_CX + C.SIGMA_I_EL;
   const pcx = C.SIGMA_CX / sigTot;
   return {
