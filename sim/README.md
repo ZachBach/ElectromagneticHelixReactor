@@ -400,12 +400,64 @@ where uniformity and profile control are the deliverables, that is arguably
 the more valuable knob anyway — but it is a different claim than the one
 the concept paper's Prediction 4 implies, and paper #2 should say so.
 
-Caveats on the verdict: decaying test ensembles (no particle source), 25 µs
-horizons with heavy censoring (τ means are lower bounds), N = 1000 per
-point, and a reduced-mass model gas. A sustained-discharge version (with a
-particle/energy source) is the right instrument for a final word — the
-ion-channel pitch sensitivity seen at H_i* > 1 could still express itself
-as density and potential differences in steady state.
+Caveats on the decay-mode verdict: decaying test ensembles, censored 25 µs
+horizons, N = 1000 per point, reduced-mass model gas. The sustained
+discharge below is the instrument that removes the first two.
+
+### Phase 3C — sustained discharge: the equilibrium answer
+
+`run-sustained.js` adds a constant volumetric source of electron–ion pairs
+(charge-neutral by construction) and runs both species to a statistical
+steady state, taking time-averaged statistics over the second half of the
+run. Steady state removes the two big limitations of decay mode: τ_eff =
+⟨N_e⟩/S is **uncensored** (confinement expressed as equilibrium inventory),
+and the wall-flux balance Γ_i/Γ_e → 1 is *enforced* by the equilibrium —
+measured 0.89–1.01 across all runs — so any surviving pitch physics is
+forced to appear in the density and potential **structure**.
+
+| condition | ratio | τ_eff µs | φ plateau V | ne peak r (m) | σ/μ (r<0.7R) |
+|---|---|---|---|---|---|
+| 100 G, 10 mTorr (H_i* = 0.18) | 0 | 8.54 | 4.28 | 0.059 | 19.9% |
+| | 1 | 8.35 | 4.22 | 0.055 | 16.7% |
+| | 3 | 9.28 | 3.76 | 0.066 | 22.7% |
+| 400 G, 3 mTorr (H_i* = 2.35) | 0 | 15.49 | 8.04 | 0.045 | 15.8% |
+| | 3 | 15.75 | 7.17 | 0.061 | 27.5% |
+
+Four findings close the arc:
+
+1. **Bulk confinement is pitch-flat in true equilibrium**: +9% at
+   H_i* = 0.18 and +2% at H_i* = 2.35 — the final, uncensored numbers
+   behind the thesis statement below.
+2. **Pitch changes the composition of confinement, not the amount.** At
+   fixed source the well plateau shallows with pitch (−12% at 100 G, −11%
+   at 400 G) at *identical* well shape, while τ_eff stays flat: the
+   equilibrium substitutes magnetic path length for electrostatic barrier,
+   almost exactly one for the other.
+3. **The structural pitch response strengthens across the ion-magnetization
+   boundary.** At H_i* = 0.18 the equilibrium density profile modulates at
+   the 10–20% level; at H_i* = 2.35 the peak moves outward by 36%, the core
+   hollows (core/edge 0.10 → 0.03), and footprint nonuniformity nearly
+   doubles. The regime gate is real — but it gates the *structural*
+   response, not the confinement response. (Caveat: the two conditions
+   differ in both B and p; a fixed-pressure B-scan of the structure is the
+   controlled follow-up.)
+4. **The decay-mode profile shifts were partly selection artifacts** — the
+   dramatic trapped-population profile changes seen in decaying snapshots
+   largely wash out in sustained equilibrium at 100 G. Equilibrium
+   time-averages are the citable profile data.
+
+**Thesis statement for paper #2, with final numbers**: within the present
+electrostatic model, self-consistent electric fields reduce the pitch
+dependence of bulk confinement from the ≈2.8× predicted by test-particle
+transport to ≤1.1× in sustained steady state, on both sides of the
+ion-magnetization boundary (H_i* up to 2.35). Pitch instead acts on the
+equilibrium structure — redistributing loss between channels and species,
+trading electrostatic for magnetic confinement at fixed total, and
+reshaping the equilibrium density profile, most strongly above ion
+magnetization. This verdict covers the transport pathway only: the model
+contains no RF heating, so pitch-dependent power deposition (Predictions
+1–2 of the concept paper) remains an open route to bulk effects — that is
+what a Phase 4 coupling model is for.
 
 ## Roadmap position
 
@@ -413,8 +465,9 @@ The project's driving question has evolved with the results: from
 "pitch → confinement" (Phase 1, answered: yes, via a validated geometric
 transport law) to "pitch → density distribution → potential structure →
 transport" (Phase 3: the plasma's self-organization decides which pitch
-effects survive). Current sequence: mobile-ion B-scan across H_i = 1
-(in progress — the direct test of the regime-gated hypothesis) → floating
-walls / sheath model → biased wafer chuck → helicon coupling models →
-dusty plasma. RF wave solvers and full PIC remain deliberately out of scope
-until the electrostatic story is complete.
+effects survive — answered by the sustained-discharge equilibrium studies
+above). Next: a controlled fixed-pressure B-scan of the equilibrium
+*structure* across H_i* = 1 → floating walls / sheath model → biased wafer
+chuck → helicon coupling models (Phase 4 — the untested pathway) → dusty
+plasma. RF wave solvers and full PIC remain deliberately out of scope until
+the electrostatic story is complete.
