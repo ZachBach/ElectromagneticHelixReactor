@@ -67,8 +67,8 @@ function check(name, ok, detail) {
     return [J[1][2] - J[2][1], J[2][0] - J[0][2], J[0][1] - J[1][0]];
   }
   const rng = coll.makeRng(42);
-  for (const model of ['screw', 'beltrami']) {
-    const f = makeField({ model, Bwall: 0.01, ratio: 1.2, R });
+  for (const [model, nExp] of [['screw'], ['beltrami'], ['powerlaw', 0.5], ['powerlaw', 2]]) {
+    const f = makeField({ model, Bwall: 0.01, ratio: 1.2, R, nExp });
     let maxDiv = 0, maxCurlErr = 0;
     for (let k = 0; k < 200; k++) {
       const r = 0.95 * R * Math.sqrt(rng()), th = rng() * 2 * Math.PI;

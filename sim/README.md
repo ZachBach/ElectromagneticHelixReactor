@@ -19,6 +19,7 @@ npm run sim:selftest    # physics checks: Boris vs exact gyromotion, div B = 0,
                         # Beltrami force-free, MCC rate vs analytic nu(E)
 npm run sim:pitch       # the headline study (defaults below)
 npm run sim:mechanism   # free-streaming geometric model (mechanism layer 0)
+npm run sim:alpha -- sim/output/<scan>.csv   # fit the transport-law exponent
 ```
 
 Options (`node sim/run-pitch-scan.js --key=value`):
@@ -26,7 +27,8 @@ Options (`node sim/run-pitch-scan.js --key=value`):
 | flag | default | meaning |
 |---|---|---|
 | `--species` | `electron` | `electron` or `ion` (Ar+) |
-| `--model` | `screw` | `screw` (Bz const, Bθ ∝ r) or `beltrami` (force-free J0/J1) |
+| `--model` | `screw` | `screw` (Bz const, Bθ ∝ r), `beltrami` (force-free J0/J1), or `powerlaw` (Bθ ∝ r^n) |
+| `--nexp` | 1 | powerlaw twist exponent n |
 | `--n` | 4000 | ensemble size |
 | `--ratios` | 0…3 | comma list of Bθ(R)/Bz values to scan |
 | `--bwall` | 0.01 | \|B(R)\| in tesla (100 G, paper baseline) |
@@ -153,11 +155,98 @@ One-factor-at-a-time around the baseline, 5-point pitch scans:
   axial drift flux. Needs multi-seed statistics before claiming; flagged for
   follow-up.
 
+## Study A — the confinement exponent
+
+Define the seeding-averaged field-line path factor
+⟨F⟩ = ⟨|B|/Bz⟩ (computed numerically from the field model by `fit-alpha.js`)
+and fit τ ∝ ⟨F⟩^α. Median-based fits (robust to the censored slow-v_z tail):
+
+| run | α (median fit) |
+|---|---|
+| free-streaming, all four profiles | 0.95 – 0.99 |
+| Boris, collisions off (screw) | 0.96 ± 0.02 |
+| full, 3 mTorr | 1.19 ± 0.03 |
+| full, 10 mTorr | 1.33 ± 0.03 |
+| full, 30 mTorr | 1.39 ± 0.05 |
+| full, 10 mTorr, powerlaw n = 0.5 / 2 / 4 | 1.41 / 1.16 / 1.15 (± 0.04–0.07) |
+
+The collisionless exponent is **α = 1**, measured to a few percent across
+every profile — residence time proportional to path length, as free streaming
+requires. Collisions push α up toward the diffusive limit of 2, monotonically
+with L/λ_mfp (λ ≈ 45 / 15 / 5 cm at 3 / 10 / 30 mTorr against L = 40 cm).
+Mean-based fits give the same picture shifted slightly (collisionless means
+are biased low by censoring). At fixed pressure the exponent is consistent
+across profiles at the ±0.15 level — the residual spread is the current
+precision limit of the law below.
+
+## Study B — the pitch-profile map
+
+`powerlaw` fields Bθ ∝ (r/R)^n at fixed wall ratio and fixed |B(R)| separate
+"how much twist" from "where the twist lives". Full-physics τ_mean (µs),
+10 mTorr, τ(0) = 1.00 for every profile:
+
+| Bθ(R)/Bz | n=0.5 | n=1 (screw) | n=2 | n=4 | beltrami |
+|---|---|---|---|---|---|
+| 0.5 | 1.10 | 1.02 | 1.03 | 0.99 | 1.04 |
+| 1.0 | 1.32 | 1.24 | 1.14 | 1.05 | 1.19 |
+| 2.0 | 2.26 | 1.89 | 1.49 | 1.18 | 1.41 |
+| 3.0 | **3.66** | 2.82 | 1.96 | **1.38** | 1.54 |
+
+At the *same wall pitch ratio*, moving twist inward (n = 0.5) versus outward
+(n = 4) changes confinement by **2.7×**. The profile is a control dimension as
+strong as the pitch magnitude itself. The free-streaming model reproduces the
+full ordering (2.92 / 2.41 / 2.07 / 1.61 µs at ratio 3), so this too is
+geometric: interior twist slows the interior electrons that dominate the
+ensemble; wall-concentrated twist (n = 4, and Beltrami, whose J1/J0 ratio
+profile behaves like n ≈ 2–4) leaves the core streaming at full speed.
+
+## Study C — loss topology
+
+Per-channel loss rates Γ_ch ≈ (channel fraction)/τ_mean, ratio 0 → 3 (µs⁻¹):
+
+| condition | Γ_end | Γ_radial | Γ_rad/Γ_end at ratio 3 |
+|---|---|---|---|
+| 3 mTorr | 1.26 → 0.54 | 0.000 → 0.001 | 0.2% |
+| 10 mTorr (baseline) | 0.99 → 0.35 | 0.004 → 0.009 | 2.5% |
+| 30 mTorr | 0.58 → 0.18 | 0.014 → 0.020 | 11% |
+| 50 G | 1.02 → 0.36 | 0.016 → 0.029 | 8% |
+| 200 G | 1.02 → 0.33 | 0.000 → 0.002 | 0.5% |
+| 10 eV | 1.06 → 0.31 | 0.018 → 0.032 | 10% |
+
+The entire confinement gain is **end-channel suppression** — Γ_end falls
+~3× at every condition. The radial channel is parasitic: it *rises* with
+pitch and with collisionality, and falls steeply with B (≈ r_L²ν collisional
+cross-field steps accumulated over the longer dwell time). It stays 1–2
+orders of magnitude below the end channel everywhere tested, but its growth
+sets the eventual limit: the pitch gain must saturate when Γ_rad approaches
+Γ_end, and at 30 mTorr or 10 eV the parasitic channel is already at ~10%.
+
+## A predictive transport law
+
+Combining the studies, electron confinement in these geometries follows
+
+    τ(profile, ratio) ≈ τ₀ · ⟨|B|/Bz⟩^α,   α = α(L/λ_mfp)
+
+with α = 1 collisionless, rising toward 2 with parallel collisionality, and
+the entire field geometry entering through the single scalar ⟨|B|/Bz⟩
+(seeding-averaged). Out-of-sample test: with α = 1.33 fitted on the screw
+scan alone, the law predicts the *Beltrami* medians — a profile never used in
+any fit — to within 1–2% at ratios 1.5, 2, and 3, and all powerlaw profiles
+to within ±8%:
+
+| profile at ratio 3 | ⟨F⟩ | predicted τ_med | measured | error |
+|---|---|---|---|---|
+| screw (in-sample) | 2.09 | 1.76 | 1.75 | +1% |
+| powerlaw n=0.5 | 2.50 | 2.23 | 2.43 | −8% |
+| powerlaw n=2 | 1.65 | 1.28 | 1.21 | +6% |
+| powerlaw n=4 | 1.29 | 0.92 | 0.89 | +4% |
+| **beltrami (out-of-sample)** | 1.39 | 1.02 | 1.01 | +1% |
+
 Caveats: test-particle, no ambipolar electric field, no RF sustainment — the
 absolute numbers are the collisionless-loss skeleton, not a device prediction.
-The claims these runs support are the *existence, shape, and mechanism* of the
-pitch dependence, which is exactly what Prediction 4 asks an experiment to
-test.
+The claims these runs support are the *existence, shape, mechanism, and
+scaling law* of the pitch dependence, which is exactly what Prediction 4 asks
+an experiment to test.
 
 ## Roadmap position
 

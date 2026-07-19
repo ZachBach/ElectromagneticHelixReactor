@@ -12,11 +12,13 @@
    (adds gyration + grad-B/curvature drifts) and the full run (adds MCC):
    agreement pins the mechanism; discrepancies attribute the remainder.
 
-   Usage: node sim/mechanism.js [--model=screw|beltrami] [--n=20000]
-     [--ratios=...] [--bwall=0.01] [--te=3] [--r=0.1] [--l=0.4]
+   Usage: node sim/mechanism.js [--model=screw|beltrami|powerlaw] [--nexp=1]
+     [--n=20000] [--ratios=...] [--bwall=0.01] [--te=3] [--r=0.1] [--l=0.4]
      [--tmax=5e-5] [--seed=1]                                                */
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const C = require('./constants');
 const { makeField } = require('./field');
 const coll = require('./collisions');
@@ -37,21 +39,30 @@ const cfg = {
   L: parseFloat(args.l || '0.4'),
   Tmax: parseFloat(args.tmax || '5e-5'),
   seed: parseInt(args.seed || '1', 10),
+  nExp: parseFloat(args.nexp || '1'),
 };
 const vth = Math.sqrt((cfg.TeV * C.EV) / C.ME);
 
-console.log(`Free-streaming geometric model — ${cfg.model} field, electrons at ${cfg.TeV} eV`);
+console.log(`Free-streaming geometric model — ${cfg.model}` +
+  `${cfg.model === 'powerlaw' ? `(n=${cfg.nExp})` : ''} field, electrons at ${cfg.TeV} eV`);
 console.log(`  |B(R)| = ${(cfg.Bwall * 1e4).toFixed(0)} G, R = ${cfg.R} m, L = ${cfg.L} m, ` +
   `N = ${cfg.n}, Tmax = ${cfg.Tmax} s, seed = ${cfg.seed}\n`);
 console.log('  ratio | tau_mean us   tau_med | surv%');
 console.log('  ------------------------------------');
+
+const csv = [
+  `# EHR free-streaming geometric model  ${new Date().toISOString()}`,
+  `# species=electron model=${cfg.model} n=${cfg.n} Bwall_T=${cfg.Bwall}`,
+  `# Tseed_eV=${cfg.TeV} R_m=${cfg.R} L_m=${cfg.L} Tmax_s=${cfg.Tmax} seed=${cfg.seed} nexp=${cfg.nExp}`,
+  'ratio,tauMean_s,tauSE_s,tauMedian_s,surviveFrac',
+];
 
 const B = new Float64Array(3);
 for (let ri = 0; ri < cfg.ratios.length; ri++) {
   const ratio = cfg.ratios[ri];
   const rng = coll.makeRng(cfg.seed * 7919 + ri * 104729 + 1);
   const gauss = coll.makeGauss(rng);
-  const field = makeField({ model: cfg.model, Bwall: cfg.Bwall, ratio, R: cfg.R });
+  const field = makeField({ model: cfg.model, Bwall: cfg.Bwall, ratio, R: cfg.R, nExp: cfg.nExp });
   const stats = new LossStats(cfg.n);
   for (let i = 0; i < cfg.n; i++) {
     // same seeding distribution as the Boris runner
@@ -71,5 +82,13 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
     `  ${ratio.toFixed(2).padStart(5)} | ${s.censored ? '>' : ' '}${(s.tauMean * 1e6).toFixed(2).padStart(8)} ` +
     `±${(s.tauSE * 1e6).toFixed(2)} ${(s.tauMedian * 1e6).toFixed(2).padStart(8)} | ` +
     `${(100 * s.surviveFrac).toFixed(1).padStart(5)}`);
+  csv.push([ratio, s.tauMean, s.tauSE, s.tauMedian, s.surviveFrac].join(','));
 }
+const outDir = path.join(__dirname, 'output');
+fs.mkdirSync(outDir, { recursive: true });
+const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
+const tag = cfg.model + (cfg.model === 'powerlaw' ? `-n${cfg.nExp}` : '');
+const outFile = path.join(outDir, `mechanism-${tag}-${stamp}.csv`);
+fs.writeFileSync(outFile, csv.join('\n'));
 console.log(`\n  ('>' = censored at Tmax, as in the Boris runs)`);
+console.log(`  CSV written: ${path.relative(process.cwd(), outFile)}`);

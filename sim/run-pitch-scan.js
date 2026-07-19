@@ -46,6 +46,7 @@ const cfg = {
   density: !!args.density,
   nocoll: !!args.nocoll,                     // disable MCC: geometry + drifts only
   dtscale: parseFloat(args.dtscale || '1'),  // timestep multiplier for convergence checks
+  nExp: parseFloat(args.nexp || '1'),        // powerlaw model: Btheta ~ (r/R)^n
 };
 cfg.Tmax = parseFloat(args.tmax || (cfg.species === 'ion' ? '0.05' : '5e-5'));
 
@@ -63,6 +64,7 @@ const dt = Math.min(0.2 / wcMax, 0.05 / nuMax) * cfg.dtscale;
 const h = (qOverM * dt) / 2;
 
 console.log(`EHR Phase 1 pitch scan — ${cfg.species}s, ${cfg.model} field` +
+  `${cfg.model === 'powerlaw' ? `(n=${cfg.nExp})` : ''}` +
   `${cfg.nocoll ? ' [collisions OFF]' : ''}${cfg.dtscale !== 1 ? ` [dt x${cfg.dtscale}]` : ''}`);
 console.log(
   `  |B(R)| = ${(cfg.Bwall * 1e4).toFixed(0)} G, p = ${cfg.pmTorr} mTorr ` +
@@ -83,7 +85,7 @@ console.log('  ' + '-'.repeat(header.length - 2));
 const csv = [
   `# EHR Phase 1 pitch scan  ${new Date().toISOString()}`,
   `# species=${cfg.species} model=${cfg.model} n=${cfg.n} Bwall_T=${cfg.Bwall} p_mTorr=${cfg.pmTorr}`,
-  `# Tseed_eV=${TseedV} Tgas_K=${cfg.Tgas} R_m=${cfg.R} L_m=${cfg.L} Tmax_s=${cfg.Tmax} dt_s=${dt} seed=${cfg.seed} nocoll=${cfg.nocoll} dtscale=${cfg.dtscale}`,
+  `# Tseed_eV=${TseedV} Tgas_K=${cfg.Tgas} R_m=${cfg.R} L_m=${cfg.L} Tmax_s=${cfg.Tmax} dt_s=${dt} seed=${cfg.seed} nocoll=${cfg.nocoll} dtscale=${cfg.dtscale} nexp=${cfg.nExp}`,
   'ratio,Bz_T,BthWall_T,pitch_halfR_m,nTotal,nLost,surviveFrac,tauMean_s,tauSE_s,tauMedian_s,fracRadialLoss,fracEndLoss,fracEndLow,fracEndHigh,ionEventsPerParticle',
 ];
 
@@ -99,7 +101,7 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
   const t0 = Date.now();
   const rng = coll.makeRng(cfg.seed * 7919 + ri * 104729 + 1);
   const gauss = coll.makeGauss(rng);
-  const field = makeField({ model: cfg.model, Bwall: cfg.Bwall, ratio, R: cfg.R });
+  const field = makeField({ model: cfg.model, Bwall: cfg.Bwall, ratio, R: cfg.R, nExp: cfg.nExp });
   const collider = cfg.nocoll ? null : (isIon
     ? coll.makeIonCollider(nn, cfg.Tgas, dt, rng, gauss)
     : coll.makeElectronCollider(nn, dt, rng));
@@ -170,7 +172,8 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
   }
 }
 
-const outFile = path.join(outDir, `pitch-scan-${stamp}.csv`);
+const outTag = cfg.model + (cfg.model === 'powerlaw' ? `-n${cfg.nExp}` : '') + (cfg.nocoll ? '-nocoll' : '');
+const outFile = path.join(outDir, `pitch-scan-${outTag}-${stamp}.csv`);
 fs.writeFileSync(outFile, csv.join('\n'));
 console.log(`\n  ('>' = ensemble censored at Tmax; tau_mean is then a lower bound)`);
 console.log(`  CSV written: ${path.relative(process.cwd(), outFile)}`);

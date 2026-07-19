@@ -59,6 +59,32 @@ function makeField(opts) {
     };
   }
 
+  if (model === 'powerlaw') {
+    // Bθ ∝ (r/R)^n with Bz constant — generalizes 'screw' (n = 1). Any Bθ(r)
+    // with Br = 0 is divergence-free. n < 1 pushes twist into the core;
+    // n > 1 concentrates it near the wall (Beltrami-like ratio profile).
+    const n = opts.nExp !== undefined ? opts.nExp : 1;
+    const Bz = Bwall / Math.sqrt(1 + ratio * ratio);
+    const BthWall = ratio * Bz;
+    return {
+      at(x, y, z, out) {
+        const r = Math.sqrt(x * x + y * y);
+        if (r < 1e-12) { out[0] = 0; out[1] = 0; out[2] = Bz; return out; }
+        const bth = BthWall * Math.pow(r / R, n);
+        out[0] = (-y / r) * bth;
+        out[1] = (x / r) * bth;
+        out[2] = Bz;
+        return out;
+      },
+      pitchAt(r) {
+        const bth = BthWall * Math.pow(r / R, n);
+        return bth > 0 ? (2 * Math.PI * r * Bz) / bth : Infinity;
+      },
+      Bmax: Bwall,
+      meta: { model, Bwall, ratio, R, Bz, BthWall, nExp: n },
+    };
+  }
+
   if (model === 'beltrami') {
     // Solve J1(αR)/J0(αR) = ratio on (0, j_{0,1}) — monotone increasing.
     let lo = 1e-9, hi = 2.4048;

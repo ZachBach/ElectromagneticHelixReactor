@@ -4,6 +4,7 @@
 'use strict';
 
 const QE = 1.602176634e-19;    // elementary charge, C
+const EPS0 = 8.8541878128e-12; // vacuum permittivity, F/m
 const ME = 9.1093837015e-31;   // electron mass, kg
 const AMU = 1.66053906660e-27; // atomic mass unit, kg
 const MAR = 39.948 * AMU;      // argon mass, kg
@@ -59,7 +60,7 @@ function neutralDensity(pmTorr, Tgas) {
 }
 
 module.exports = {
-  QE, ME, AMU, MAR, KB, EV, EION,
+  QE, EPS0, ME, AMU, MAR, KB, EV, EION,
   SIGMA_CX, SIGMA_I_EL,
   sigmaElectronElastic, sigmaElectronIonization, neutralDensity,
 };
