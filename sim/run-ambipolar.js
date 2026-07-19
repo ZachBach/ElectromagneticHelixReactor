@@ -89,9 +89,14 @@ const dt = Math.min(0.2 / wcMax, 0.05 / nuMax, 0.2 / wpe, mob ? 0.05 / nuMaxI : 
 const h = (qOverM * dt) / 2;
 const eKick = (qOverM * dt) / 2; // half-step E acceleration factor
 const hI = (qOverMI * dt) / 2;
-// ion Hall parameter with the paper's thermal-rate convention
+// ion Hall parameter, two conventions: thermal (the paper's), and evaluated
+// at the ambipolar exit speed c_s — escaping ions are accelerated to ~c_s by
+// the well, where CX collisionality is higher, so Hi_star governs whether
+// the LOSS channel is magnetized. First B-scan (10 mTorr) showed the gate
+// sits at Hi_star, not thermal H_i.
 const vBarI = Math.sqrt((8 * C.KB * cfg.Tgas) / (Math.PI * mI));
 const Hi = (qOverMI * cfg.Bwall) / (nn * (C.SIGMA_CX + C.SIGMA_I_EL) * vBarI);
+const HiStar = (qOverMI * cfg.Bwall) / (nn * (C.SIGMA_CX + C.SIGMA_I_EL) * cs);
 // field update every ~0.57 ns of physical time regardless of dt
 cfg.fieldEvery = args.fieldevery
   ? parseInt(args.fieldevery, 10)
@@ -102,7 +107,7 @@ const Vseed = Math.PI * (0.9 * cfg.R) ** 2 * (0.8 * cfg.L);
 const wSuper = (cfg.n0 * Vseed) / cfg.n; // real electrons per super-particle
 
 console.log(`EHR Phase 3 ambipolar study — feedback ${cfg.feedback ? 'ON' : 'OFF'}, ` +
-  `ions ${mob ? `MOBILE (m=${cfg.mIonAmu} amu, H_i=${Hi.toFixed(2)})` : 'frozen'}, ` +
+  `ions ${mob ? `MOBILE (m=${cfg.mIonAmu} amu, H_i=${Hi.toFixed(2)}, H_i*=${HiStar.toFixed(2)} at c_s)` : 'frozen'}, ` +
   `${cfg.model}${cfg.model === 'powerlaw' ? `(n=${cfg.nExp})` : ''} field`);
 console.log(`  n0 = ${cfg.n0.toExponential(1)} m^-3, |B(R)| = ${(cfg.Bwall * 1e4).toFixed(0)} G, ` +
   `p = ${cfg.pmTorr} mTorr, Te = ${cfg.TeV} eV, grid ${Nr}x${Nz}`);
@@ -175,7 +180,7 @@ const runTag = `${cfg.model}${cfg.model === 'powerlaw' ? '-n' + cfg.nExp : ''}-f
   (mob ? `-mob${(cfg.Bwall * 1e4).toFixed(0)}G` : '');
 const summary = [
   `# EHR Phase 3 ambipolar study  ${new Date().toISOString()}`,
-  `# feedback=${cfg.feedback} ions=${cfg.ions} mion_amu=${cfg.mIonAmu} Hi=${Hi} n0_m3=${cfg.n0} model=${cfg.model} nexp=${cfg.nExp} n=${cfg.n} Bwall_T=${cfg.Bwall} p_mTorr=${cfg.pmTorr}`,
+  `# feedback=${cfg.feedback} ions=${cfg.ions} mion_amu=${cfg.mIonAmu} Hi=${Hi} HiStar=${HiStar} n0_m3=${cfg.n0} model=${cfg.model} nexp=${cfg.nExp} n=${cfg.n} Bwall_T=${cfg.Bwall} p_mTorr=${cfg.pmTorr}`,
   `# Tseed_eV=${cfg.TeV} R_m=${cfg.R} L_m=${cfg.L} Tmax_s=${cfg.Tmax} dt_s=${dt} grid=${Nr}x${Nz} fieldevery=${cfg.fieldEvery} seed=${cfg.seed}`,
   'ratio,surviveFrac,tauMean_s,tauLeak_s,phiMax_V,fracRadialLoss,fracEndLoss' +
     (mob ? ',surviveFracIon,GiOverGe,Hi' : ''),

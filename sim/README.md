@@ -335,11 +335,77 @@ snapshots; 6-point pitch scan, frozen ions, 10 µs):
    pitch acts on the density *distribution* — the processing-relevant
    quantity — not on the barrier.
 
-Proving the ion side numerically needs mobile ions, which the runner now
-supports (`--ions=mobile`, with `--mion` setting a reduced ion/neutral mass
-so the H_i = 1 boundary falls in an affordable field range; Γ_i/Γ_e → 1 is
-reported as the ambipolar-equilibrium check). The B-scan crossing H_i = 1 —
-pitch gain vs ion Hall parameter — is the current experiment.
+### Mobile ions and the first H_i crossing attempt
+
+`--ions=mobile` replaces the frozen background with kinetic ions (both
+species pushed, deposited, and lost; `--mion` sets a reduced ion/neutral
+mass — default 1 amu, hydrogen-like model gas — so the ion-magnetization
+boundary falls in an affordable field range; Γ_i/Γ_e → 1 is the
+ambipolar-equilibrium check). With ions mobile the well relaxes (11.5 →
+~6 V at 100 G) and ion escape sets the slow decay, as real ambipolar
+physics requires.
+
+B-scan at 10 mTorr, ratios 0 vs 3, N = 1000, 25 µs (censored means):
+
+| B (G) | H_i (thermal) | H_i* (at c_s) | pitch gain τ(3)/τ(0) | survI% (r=0) | Γi/Γe | φ V |
+|---|---|---|---|---|---|---|
+| 25 | 0.30 | 0.04 | 1.15 | 23.3 | 2.76 | 5.7 |
+| 50 | 0.59 | 0.09 | 1.24 | 22.2 | 3.35 | 6.4 |
+| 100 | 1.19 | 0.18 | 1.32 | 25.0 | 2.88 | 6.2 |
+| 200 | 2.38 | 0.35 | 1.24 | 38.6 | 2.25 | 6.6 |
+| 400 | 4.76 | 0.70 | 1.12 | 68.8 | 1.73 | 7.2 |
+
+**No gating appeared across nominal H_i = 0.3 → 4.8** — the pitch gain sits
+flat at ~1.2 ± 0.1 while the ion channel closes with B in a pitch-blind way
+(ion survival 23 → 69%, flux ratio falling toward balance, well deepening
+slightly). The scan itself explains why: escaping ions are accelerated to
+~c_s by the well, where charge-exchange collisionality is ~7× higher than
+thermal, so the Hall parameter *of the loss channel* is
+
+    H_i* = ω_ci / ν(c_s)
+
+which never exceeded 0.70 in this scan. The thermal H_i overstates
+escaping-ion magnetization; the regime gate — if it exists — sits at
+H_i* ≈ 1, not thermal H_i ≈ 1. This matters for the real device too:
+argon at 10 mTorr crosses H_i* = 1 near 3.7 kG rather than 530 G, but at
+3 mTorr near 1.1 kG — pressure is part of the pitch-control design space.
+
+### The corrected crossing — and the verdict
+
+Second scan at 3 mTorr, which carries H_i* through 1 (same protocol):
+
+| B (G) | H_i* (at c_s) | pitch gain τ(3)/τ(0) | survI% r=0 → r=3 | survE% r=0 → r=3 |
+|---|---|---|---|---|
+| 50 | 0.29 | 1.15 | 12.9 → 11.3 | 1.2 → 0.3 |
+| 100 | 0.59 | 1.12 | 21.3 → 19.9 | 1.5 → 1.1 |
+| 200 | 1.17 | 1.05 | 43.3 → 42.8 | 4.0 → 2.3 |
+| 400 | 2.35 | **0.97** | 71.5 → **78.1** | 13.3 → 9.3 |
+
+**Crossing H_i* = 1 did not restore the bulk-confinement pitch advantage.**
+The gain declines monotonically across the boundary and reaches ~1.0 at
+H_i* = 2.35. The strong form of the regime-gated hypothesis — bulk
+confinement gain re-emerges above ion magnetization — is *not supported*
+in this model system. The weak form is: at H_i* = 2.35 the **ion channel
+itself finally became pitch-sensitive** (ion survival prefers high pitch,
+71.5 → 78.1%), exactly as magnetized-ion geometry requires — but ambipolar
+coupling converts that into a slightly shallower well and faster electron
+radial drain rather than into net confinement.
+
+Synthesis across all of Phase 3: **ambipolar self-organization launders the
+pitch advantage out of bulk confinement on both sides of the
+ion-magnetization boundary; what pitch robustly controls is the
+distribution — which loss channel, which species, and which radius carries
+the flux, and where the trapped density sits.** For plasma processing,
+where uniformity and profile control are the deliverables, that is arguably
+the more valuable knob anyway — but it is a different claim than the one
+the concept paper's Prediction 4 implies, and paper #2 should say so.
+
+Caveats on the verdict: decaying test ensembles (no particle source), 25 µs
+horizons with heavy censoring (τ means are lower bounds), N = 1000 per
+point, and a reduced-mass model gas. A sustained-discharge version (with a
+particle/energy source) is the right instrument for a final word — the
+ion-channel pitch sensitivity seen at H_i* > 1 could still express itself
+as density and potential differences in steady state.
 
 ## Roadmap position
 
