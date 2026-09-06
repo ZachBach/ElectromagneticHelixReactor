@@ -7,7 +7,7 @@ question (Prediction 4 of the paper):
 > parameter? Does scanning Bθ/Bz at fixed |B|, pressure, and energy
 > change confinement and transport?
 
-This is deliberately separate from the browser engine (`../ehr-engine.js`),
+This is deliberately separate from the browser engine (`../helix-engine.js`),
 which runs in normalized units with tuned coefficients and recycles lost
 particles for visualization. Here everything is dimensional, walls absorb, and
 confinement times come out in seconds.
@@ -300,6 +300,15 @@ into a regime statement:
 
 That is directly testable by the paper's proposed B-field scan, and it is a
 falsifiable refinement this simulator produced rather than assumed.
+
+> **Superseded twice over — read on before quoting the box above.** The
+> ≈530 G figure came from the simple Hall-parameter argument; the corrected
+> crossing calculation below puts H_i* = 1 near **3.7 kG** at 10 mTorr (and
+> ≈1.1 kG at 3 mTorr). More importantly, the scan that actually crossed the
+> boundary **did not** find the predicted switch-on: see *The corrected
+> crossing — and the verdict*. The box is kept as written because it is the
+> prediction the next study went on to falsify, and deleting it would hide
+> the shape of the argument.
 
 ### Regime I structure: the well is flat, the profiles move
 

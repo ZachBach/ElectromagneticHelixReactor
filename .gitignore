@@ -4,6 +4,11 @@ node_modules/
 Thumbs.db
 
 # LaTeX build artifacts (paper/)
+# The compiled paper is build output, not source — it was committed until
+# 2026-09-05 and had already drifted behind the .tex. Build it with tectonic.
+# Note this ignores only the paper itself: paper/figures/ehr-regime-map.pdf is
+# a figure the .tex \includegraphics, and stays tracked.
+paper/ehr-paper.pdf
 *.aux
 *.log
 *.out
