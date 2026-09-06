@@ -60,7 +60,7 @@
 
     /* ---- responsive: diagnostics / plots chart grids ---- */
     .ehr-diag-grid{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;padding:12px;}
-    .ehr-plots-grid{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;min-height:0;}
+    .helix-plots-grid{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;min-height:0;}
     .ehr-guide-2col{grid-template-columns:1fr 1fr;}
     .ehr-guide-pane{padding:26px 30px 60px;}
 
@@ -79,13 +79,13 @@
       .ehr-guide-2col{grid-template-columns:1fr;}
       .ehr-guide-pane{padding:14px 14px 60px;}
       .ehr-diag-grid{grid-template-columns:1fr;grid-template-rows:none;grid-auto-rows:minmax(220px,auto);overflow-y:auto;}
-      .ehr-plots-grid{grid-template-columns:1fr;grid-template-rows:none;grid-auto-rows:minmax(200px,auto);overflow-y:auto;}
+      .helix-plots-grid{grid-template-columns:1fr;grid-template-rows:none;grid-auto-rows:minmax(200px,auto);overflow-y:auto;}
       .ehr-topbar{column-gap:8px!important;padding:6px 10px!important;}
       .ehr-topbar button{padding:6px 9px!important;letter-spacing:1px!important;}
       .ehr-mval{font-size:16px!important;min-width:52px!important;}
       .ehr-mlabel{display:none!important;}
-      .ehr-plots-bar{flex-wrap:wrap;row-gap:8px;}
-      .ehr-plots-bar [data-verbose]{display:none;}
+      .helix-plots-bar{flex-wrap:wrap;row-gap:8px;}
+      .helix-plots-bar [data-verbose]{display:none;}
     }
     /* ---- notched phones: keep footer above the home indicator ---- */
     @supports(padding:env(safe-area-inset-bottom)){
@@ -99,11 +99,11 @@
       input[type=range]::-moz-range-thumb{width:18px;height:18px;}
     }
   </style>
-  <script src="ehr-device.js"></script>
-  <script src="ehr-plots.js"></script>
-  <script src="ehr-engine.js"></script>
-  <script src="ehr-dust.js"></script>
-  <script src="ehr-view3d.js"></script>
+  <script src="helix-device.js"></script>
+  <script src="helix-plots.js"></script>
+  <script src="helix-engine.js"></script>
+  <script src="helix-dust.js"></script>
+  <script src="helix-view3d.js"></script>
 </helmet>
 
 <div style="height:100vh;display:flex;flex-direction:column;background:#04070b;color:#c6d4e2;font-family:'IBM Plex Mono',monospace;font-size:12px;overflow:hidden;user-select:none;">
@@ -396,7 +396,7 @@
 
       <!-- PLOTS -->
       <div data-screen-label="Plots" style="position:absolute;inset:0;display:{{ plotsDisplay }};flex-direction:column;gap:10px;padding:12px;">
-        <div class="ehr-plots-bar" style="flex:none;display:flex;align-items:center;gap:12px;background:#070d14;border:1px solid #121e2b;padding:9px 12px;">
+        <div class="helix-plots-bar" style="flex:none;display:flex;align-items:center;gap:12px;background:#070d14;border:1px solid #121e2b;padding:9px 12px;">
           <div style="display:flex;gap:4px;">
             <button data-var="M" onClick="{{ onSweepVar }}" style="{{ svMStyle }}">M</button>
             <button data-var="freq" onClick="{{ onSweepVar }}" style="{{ svFStyle }}">f</button>
@@ -414,7 +414,7 @@
           <button onClick="{{ onClearTrail }}" style="padding:6px 10px;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border:1px solid #1c2c3c;background:#0d1620;color:#8aa0b5;" style-hover="color:#c6d4e2;border-color:#2c4258;">CLEAR</button>
           <button onClick="{{ onExport }}" style="padding:6px 10px;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:1px;cursor:pointer;border:1px solid #2c586e;background:#0c2431;color:#3fd9ff;" style-hover="color:#e8f2fa;border-color:#3fd9ff;">EXPORT CSV</button>
         </div>
-        <div class="ehr-plots-grid" style="flex:1;display:grid;">
+        <div class="helix-plots-grid" style="flex:1;display:grid;">
           <div style="display:flex;flex-direction:column;min-height:0;background:#070d14;border:1px solid #121e2b;padding:8px 10px;">
             <div style="font-size:10px;letter-spacing:2px;color:#5b7186;margin-bottom:4px;">DENSITY n̄</div>
             <div style="flex:1;position:relative;min-height:0;"><canvas ref="{{ pDen }}" style="position:absolute;inset:0;width:100%;height:100%;"></canvas></div>
