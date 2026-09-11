@@ -1,0 +1,7 @@
+# EHR Phase 3 ambipolar study  2026-07-19T08:57:46.343Z
+# feedback=false n0_m3=300000000000 model=screw nexp=1 n=2000 Bwall_T=0.01 p_mTorr=10
+# Tseed_eV=3 R_m=0.1 L_m=0.4 Tmax_s=0.00002 dt_s=1.1371260207131446e-10 grid=48x96 fieldevery=5 seed=1
+ratio,surviveFrac,tauMean_s,tauLeak_s,phiMax_V,fracRadialLoss,fracEndLoss
+0,0.0005,0.0000010198534182700307,Infinity,0,0.00400200100050025,0.9959979989994997
+1,0,0.0000011918860299296168,Infinity,0,0.0055,0.9945
+3,0.0045,0.000002764880926522181,Infinity,0,0.022601707684580613,0.9773982923154194

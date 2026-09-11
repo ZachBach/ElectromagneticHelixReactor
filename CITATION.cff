@@ -37,15 +37,15 @@ abstract: >-
   reduce the pitch dependence of bulk electron confinement from the
   approximately 2.8x that test-particle transport predicts to at most 1.1x in
   sustained steady state, on both sides of the ion-magnetization boundary
-  (ion Hall parameter up to 2.35). Sweeping across that boundary did not
+  (exit-speed ion Hall parameter H_i* up to 2.35). Sweeping across that boundary did not
   restore the advantage; the gain declined monotonically to 0.97. The strong
   form of the regime-gated confinement hypothesis is therefore NOT SUPPORTED in
   this model system. Field-line pitch instead controls the distribution of
   transport — which loss channel and which species carries the flux, and where
   the trapped density sits — making it a profile-control parameter rather than
   a confinement-control parameter. A secondary correction: the argon crossing
-  of ion Hall parameter 1 sits near 3.7 kG at 10 mTorr, not the 530 G given by
-  the simple Hall-parameter argument.
+  of exit-speed ion Hall parameter H_i* = 1 sits near 3.6 kG at 10 mTorr, not the 530 G
+  where the thermal ion Hall parameter reaches 1.
 
   Fidelity, stated as part of the record: the browser model is REDUCED and runs
   in NORMALIZED UNITS on analytic fields, macro-particles and a coarse

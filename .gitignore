@@ -6,9 +6,10 @@ Thumbs.db
 # LaTeX build artifacts (paper/)
 # The compiled paper is build output, not source — it was committed until
 # 2026-09-05 and had already drifted behind the .tex. Build it with tectonic.
-# Note this ignores only the paper itself: paper/figures/ehr-regime-map.pdf is
-# a figure the .tex \includegraphics, and stays tracked.
+# Note this ignores only the papers themselves: paper/figures/*.pdf are figures
+# the .tex files \includegraphics, and stay tracked.
 paper/ehr-paper.pdf
+paper/pitch-confinement.pdf
 *.aux
 *.log
 *.out
@@ -19,3 +20,7 @@ paper/ehr-paper.pdf
 *.fdb_latexmk
 *.fls
 *.xdv
+
+# Personal notes and drafts (local only)
+ZNA-todo-list.md
+ZNA-linkedin/
