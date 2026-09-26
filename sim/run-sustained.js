@@ -28,7 +28,8 @@
    Usage: node sim/run-sustained.js [--rate=200] [--ttotal=6e-5] [--n0seed=800]
      [--mion=1] [--ratios=0,1,3] [--model=screw|beltrami|powerlaw] [--nexp=1]
      [--bwall=0.01] [--pressure=10] [--te=3] [--r=0.1] [--l=0.4] [--seed=1]
-     [--nr=48] [--nz=96] [--fieldevery=<steps>] [--cap=24000]               */
+     [--nr=48] [--nz=96] [--fieldevery=<steps>] [--cap=24000]
+     [--endplates=grounded|floating]               */
 'use strict';
 
 const fs = require('fs');
@@ -63,6 +64,7 @@ const cfg = {
   Nr: parseInt(args.nr || '48', 10),
   Nz: parseInt(args.nz || '96', 10),
   cap: parseInt(args.cap || '24000', 10),
+  floating: (args.endplates || 'grounded') === 'floating', // floating = no net current to either end plate
 };
 
 const mI = cfg.mIonAmu * C.AMU;
@@ -83,6 +85,27 @@ cfg.fieldEvery = args.fieldevery ? parseInt(args.fieldevery, 10) : Math.max(1, M
 const Vseed = Math.PI * (0.9 * cfg.R) ** 2 * (0.8 * cfg.L);
 const wSuper = (3e11 * Vseed) / 2000;
 const Ssuper = cfg.rate * 1e6; // super-pairs per second
+const qSuper = C.QE * wSuper;  // charge carried by one super-particle, C
+
+/* Floating end plates: each plate is an isolated conductor whose potential is
+   its collected charge over its capacitance, V = Q/C, with C from a Laplace
+   solve (that plate at 1 V, every other surface grounded). Steady state then
+   forces zero net current to each plate — the electron and ion fluxes to it
+   must balance, removing the short circuit through grounded end plates. C only
+   sets how fast a plate charges, not the steady state. The radial wall stays
+   grounded. */
+function plateCapacitance() {
+  const p = new PoissonRZ(cfg.Nr, cfg.Nz, cfg.R, cfg.L);
+  p.Vlo = 1;
+  p.solve(new Float64Array(cfg.Nr * cfg.Nz), { maxIter: 20000, tol: 1e-9 });
+  const drC = cfg.R / cfg.Nr, dzC = cfg.L / cfg.Nz;
+  let q = 0; // induced charge: eps0 · E_z at the plate face · annulus area
+  for (let i = 0; i < cfg.Nr; i++) {
+    q += C.EPS0 * (2 * (1 - p.phi[i]) / dzC) * Math.PI * (2 * i + 1) * drC * drC;
+  }
+  return q;
+}
+const Cplate = cfg.floating ? plateCapacitance() : 0;
 
 const Nr = cfg.Nr, Nz = cfg.Nz, dr = cfg.R / Nr, dz = cfg.L / Nz;
 
@@ -92,7 +115,7 @@ console.log(`EHR Phase 3C sustained discharge — ${cfg.model}` +
 console.log(`  |B(R)| = ${(cfg.Bwall * 1e4).toFixed(0)} G, p = ${cfg.pmTorr} mTorr, ` +
   `Te = ${cfg.TeV} eV, source = ${cfg.rate}/us into the seed region, grid ${Nr}x${Nz}`);
 console.log(`  Ttotal = ${cfg.Ttotal} s (measure over 2nd half), dt = ${dt.toExponential(2)} s, ` +
-  `field update every ${cfg.fieldEvery} steps, cap = ${cfg.cap}`);
+  `field update every ${cfg.fieldEvery} steps, cap = ${cfg.cap}, end plates ${cfg.floating ? `floating (C = ${(Cplate * 1e12).toFixed(2)} pF)` : 'grounded'}`);
 console.log('');
 console.log('  ratio | <Ne>  <Ni>  | tau_eff us | phiMax V | Gi/Ge | e-loss end%/rad% |    s');
 console.log('  ' + '-'.repeat(84));
@@ -146,12 +169,12 @@ function interpE(Er, Ez, x, y, z, out) {
 const outDir = path.join(__dirname, 'output');
 fs.mkdirSync(outDir, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
-const runTag = `${cfg.model}${cfg.model === 'powerlaw' ? '-n' + cfg.nExp : ''}-${(cfg.Bwall * 1e4).toFixed(0)}G-${cfg.pmTorr}mT`;
+const runTag = `${cfg.model}${cfg.model === 'powerlaw' ? '-n' + cfg.nExp : ''}-${(cfg.Bwall * 1e4).toFixed(0)}G-${cfg.pmTorr}mT${cfg.floating ? '-float' : ''}`;
 const summary = [
   `# EHR Phase 3C sustained discharge  ${new Date().toISOString()}`,
   `# model=${cfg.model} nexp=${cfg.nExp} mion_amu=${cfg.mIonAmu} HiStar=${HiStar} Bwall_T=${cfg.Bwall} p_mTorr=${cfg.pmTorr}`,
-  `# rate_per_us=${cfg.rate} Ttotal_s=${cfg.Ttotal} Tseed_eV=${cfg.TeV} R_m=${cfg.R} L_m=${cfg.L} dt_s=${dt} grid=${Nr}x${Nz} seed=${cfg.seed}`,
-  'ratio,NeSS,NiSS,tauEff_s,phiMax_V,GiOverGe,fracEndE,fracRadialE,capHits',
+  `# rate_per_us=${cfg.rate} Ttotal_s=${cfg.Ttotal} Tseed_eV=${cfg.TeV} R_m=${cfg.R} L_m=${cfg.L} dt_s=${dt} grid=${Nr}x${Nz} seed=${cfg.seed} endplates=${cfg.floating ? 'floating' : 'grounded'} Cplate_F=${Cplate}`,
+  'ratio,NeSS,NiSS,tauEff_s,phiMax_V,GiOverGe,fracEndE,fracRadialE,capHits,VloAvg_V,VhiAvg_V,GiGeLo,GiGeHi',
 ];
 
 const R2 = cfg.R * cfg.R;
@@ -201,6 +224,8 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
   let injAcc = 0, capHits = 0;
   let neSum = 0, niSum = 0, nSamp = 0, fieldSamp = 0;
   let lostEEnd = 0, lostERad = 0, lostIEnd = 0, lostIRad = 0; // measurement window only
+  let Qlo = 0, Qhi = 0, VloSum = 0, VhiSum = 0;              // end-plate charge (C), window-summed V
+  let eLo = 0, eHi = 0, iLo = 0, iHi = 0;                    // per-plate losses, window only
 
   for (let step = 0; step < nSteps; step++) {
     const measuring = step >= measStart;
@@ -211,6 +236,7 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
       depositInto(ne, pos, alive, nAlive);
       depositInto(ni, posI, aliveI, nAliveI);
       for (let c = 0; c < S.length; c++) S[c] = (C.QE * (ni[c] - ne[c])) / C.EPS0;
+      if (cfg.floating) { sor.Vlo = Qlo / Cplate; sor.Vhi = Qhi / Cplate; }
       sor.solve(S, { maxIter: step === 0 ? 3000 : 60, tol: 1e-4 });
       sor.gradients();
       if (measuring) {
@@ -218,6 +244,7 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
           phiAvg[c] += sor.phi[c]; neAvg[c] += ne[c]; niAvg[c] += ni[c];
         }
         fieldSamp++;
+        VloSum += sor.Vlo; VhiSum += sor.Vhi;
       }
     }
 
@@ -235,6 +262,7 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
       if (x * x + y * y >= R2) lost = KIND.RADIAL;
       else if (z <= 0 || z >= cfg.L) lost = KIND.END_LOW;
       if (lost) {
+        if (lost !== KIND.RADIAL) { if (z <= 0) { Qlo -= qSuper; if (measuring) eLo++; } else { Qhi -= qSuper; if (measuring) eHi++; } }
         if (measuring) { if (lost === KIND.RADIAL) lostERad++; else lostEEnd++; }
         alive[k] = alive[--nAlive]; alive[nAlive] = idx;
         k--;
@@ -256,6 +284,7 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
       if (x * x + y * y >= R2) lost = KIND.RADIAL;
       else if (z <= 0 || z >= cfg.L) lost = KIND.END_LOW;
       if (lost) {
+        if (lost !== KIND.RADIAL) { if (z <= 0) { Qlo += qSuper; if (measuring) iLo++; } else { Qhi += qSuper; if (measuring) iHi++; } }
         if (measuring) { if (lost === KIND.RADIAL) lostIRad++; else lostIEnd++; }
         aliveI[k] = aliveI[--nAliveI]; aliveI[nAliveI] = idx;
         k--;
@@ -282,8 +311,15 @@ for (let ri = 0; ri < cfg.ratios.length; ri++) {
     `${gRatio.toFixed(2).padStart(5)} | ` +
     `${lostE ? ((100 * lostEEnd) / lostE).toFixed(1).padStart(7) : '    n/a'}/${lostE ? ((100 * lostERad) / lostE).toFixed(1) : 'n/a'} | ${wallSec.padStart(4)}`);
   summary.push([ratio, NeSS, NiSS, tauEff, phiMax, gRatio,
-    lostE ? lostEEnd / lostE : 0, lostE ? lostERad / lostE : 0, capHits].join(','));
+    lostE ? lostEEnd / lostE : 0, lostE ? lostERad / lostE : 0, capHits,
+    VloSum / Math.max(fieldSamp, 1), VhiSum / Math.max(fieldSamp, 1),
+    eLo ? iLo / eLo : Infinity, eHi ? iHi / eHi : Infinity].join(','));
   if (capHits > 0) console.log(`        WARNING: source capped ${capHits} times — raise --cap or lower --rate`);
+  if (cfg.floating) {
+    console.log(`        end plates: V = ${(VloSum / Math.max(fieldSamp, 1)).toFixed(2)} / ` +
+      `${(VhiSum / Math.max(fieldSamp, 1)).toFixed(2)} V, Gi/Ge per plate = ` +
+      `${(iLo / Math.max(eLo, 1)).toFixed(2)} / ${(iHi / Math.max(eHi, 1)).toFixed(2)}`);
+  }
 
   const rows = ['r_m,z_m,phi_V,ne_m3,ni_m3'];
   for (let j = 0; j < Nz; j++) {

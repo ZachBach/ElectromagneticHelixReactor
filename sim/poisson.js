@@ -26,12 +26,16 @@ class PoissonRZ {
       this.aE[i] = (i + 1) / (rc * this.dr);
     }
     this.az = 1 / (this.dz * this.dz);
+    // End-plate potentials (V) at z = 0 and z = L. 0 = grounded, as in every
+    // archived run; floating end plates set these before each solve.
+    this.Vlo = 0;
+    this.Vhi = 0;
   }
 
   /* SOR solve of lap(phi) = -S with S = rho/eps0, warm-starting from the
      previous phi. Returns sweeps used. */
   solve(S, opts) {
-    const { Nr, Nz, aW, aE, az, phi } = this;
+    const { Nr, Nz, aW, aE, az, phi, Vlo, Vhi } = this;
     const omega = (opts && opts.omega) || 1.9;
     const maxIter = (opts && opts.maxIter) || 4000;
     const tol = (opts && opts.tol) || 1e-4;
@@ -47,8 +51,8 @@ class PoissonRZ {
           let sum = S[c];
           if (i > 0) sum += aW[i] * phi[c - 1];
           if (i + 1 < Nr) sum += aE[i] * phi[c + 1]; else diag += aE[i];
-          if (j > 0) sum += az * phi[c - Nr]; else diag += az;
-          if (j + 1 < Nz) sum += az * phi[c + Nr]; else diag += az;
+          if (j > 0) sum += az * phi[c - Nr]; else { diag += az; sum += 2 * az * Vlo; }
+          if (j + 1 < Nz) sum += az * phi[c + Nr]; else { diag += az; sum += 2 * az * Vhi; }
           const nu = (1 - omega) * phi[c] + (omega * sum) / diag;
           const d = Math.abs(nu - phi[c]);
           if (d > maxD) maxD = d;
@@ -73,8 +77,8 @@ class PoissonRZ {
         const pW = i > 0 ? phi[c - 1] : phi[c];           // mirror across axis
         const pE = i + 1 < Nr ? phi[c + 1] : -phi[c];     // wall ghost
         Er[c] = -(pE - pW) / (2 * dr);
-        const pS = j > 0 ? phi[c - Nr] : -phi[c];         // end-plate ghosts
-        const pN = j + 1 < Nz ? phi[c + Nr] : -phi[c];
+        const pS = j > 0 ? phi[c - Nr] : 2 * this.Vlo - phi[c];         // end-plate ghosts
+        const pN = j + 1 < Nz ? phi[c + Nr] : 2 * this.Vhi - phi[c];
         Ez[c] = -(pN - pS) / (2 * dz);
       }
     }

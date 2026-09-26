@@ -133,6 +133,34 @@ function check(name, ok, detail) {
     `rel L2 err ${(rel * 100).toFixed(2)}% in ${sweeps} sweeps`);
 }
 
+// ---- 3c. Poisson with an end plate held at a potential vs the analytic series ----
+{
+  const { PoissonRZ } = require('./poisson');
+  const { besselJ } = require('./field');
+  const Nr = 64, Nz = 256, R = 0.1, L = 0.4, V = 1;
+  const p = new PoissonRZ(Nr, Nz, R, L);
+  p.Vlo = V; // plate at z = 0 held at V; radial wall and far plate grounded
+  const sweeps = p.solve(new Float64Array(Nr * Nz), { maxIter: 40000, tol: 1e-9 });
+  // phi = sum_n 2V/(j_n J1(j_n)) J0(j_n r/R) sinh(j_n (L - z)/R) / sinh(j_n L/R)
+  const zeros = [2.404825558, 5.520078110, 8.653727913, 11.791534439, 14.930917708, 18.071063968];
+  const exact = (r, z) => zeros.reduce((s, j) => s + (2 * V / (j * besselJ(1, j))) *
+    besselJ(0, (j * r) / R) * Math.sinh((j * (L - z)) / R) / Math.sinh((j * L) / R), 0);
+  let e2 = 0, x2 = 0;
+  for (let jz = 0; jz < Nz; jz++) {
+    const z = (jz + 0.5) * (L / Nz);
+    if (z < 0.05) continue; // the plate meets the grounded wall at a singular corner
+    for (let i = 0; i < Nr; i++) {
+      const r = (i + 0.5) * (R / Nr);
+      if (r > 0.8 * R) continue;
+      const ex = exact(r, z), d = p.phi[jz * Nr + i] - ex;
+      e2 += d * d; x2 += ex * ex;
+    }
+  }
+  const rel = Math.sqrt(e2 / x2);
+  check('Poisson end plate at fixed potential vs analytic series', rel < 0.02,
+    `rel L2 err ${(rel * 100).toFixed(2)}% for z > 5 cm, r < 0.8R, in ${sweeps} sweeps`);
+}
+
 // ---- 4. MCC electron collision rate vs analytic nu(E) ----
 {
   const nn = C.neutralDensity(10, 300);

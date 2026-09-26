@@ -73,22 +73,34 @@ ax.text(0.35, 500, "UNMAGNETIZED\n$H_e<1$", fontsize=8, color=INK,
         ha="center", va="center")
 ax.text(20, 30, "ELECTRON-MAGNETIZED\n(helicon regime)  $H_e>1,\\ H_i<1$",
         fontsize=8.5, color=INK, ha="center", va="center")
-ax.text(1800, 2.6, "FULLY\nMAGNETIZED\n$H_i>1$", fontsize=8, color=INK,
+ax.text(3300, 3.0, "FULLY\nMAGNETIZED\n$H_i>1$", fontsize=8, color=INK,
         ha="center", va="center")
 ax.text(19, 300, "$H_e=1$", fontsize=8, color=INK, rotation=45)
 ax.text(2400, 30, "$H_i=1$", fontsize=8, color=INK, rotation=45)
 
 # operating points: A = baseline, B = ion-magnetization onset (H_i = 1), same pressure
 B_ONSET = 100.0 / hall(100, 10, MI, SIGMA_IN, VBAR_I)
-ax.annotate("", xy=(1000, 10), xytext=(115, 10),
+
+# C: the loss-channel transition located by the self-consistent simulations
+# (mobile-ion Hall-crossover study). This is NOT the single-particle boundary:
+# ions become pitch-sensitive at B (H_i = 1), but the character of BULK
+# transport does not change until roughly seven times higher in field. Point B
+# is analytic, point C is simulated, and the gap between them is a result.
+B_LOSS = 3700.0
+
+ax.annotate("", xy=(4300, 10), xytext=(115, 10),
             arrowprops=dict(arrowstyle="-|>", color="#b91c1c", lw=1.3))
 ax.plot([100], [10], marker="o", ms=7, mfc="#b91c1c", mec="white", mew=1.2, zorder=5)
 ax.plot([B_ONSET], [10], marker="s", ms=6.5, mfc="white", mec="#b91c1c", mew=1.4, zorder=5)
+ax.plot([B_LOSS], [10], marker="^", ms=7.5, mfc="#b91c1c", mec="white", mew=1.2, zorder=5)
 ax.text(100, 13.5, "A", fontsize=9, fontweight="bold", color="#b91c1c", ha="center", va="bottom")
 ax.text(B_ONSET, 13.5, "B", fontsize=9, fontweight="bold", color="#b91c1c", ha="center", va="bottom")
-ax.text(12, 2.05,
+ax.text(B_LOSS, 13.5, "C", fontsize=9, fontweight="bold", color="#b91c1c", ha="center", va="bottom")
+ax.text(75, 2.1,
         "A: baseline (100 G, 10 mTorr)\n"
-        rf"B: ion-magnetization onset ($H_i=1$, $\approx${B_ONSET:.0f} G)"
+        rf"B: $H_i=1$ onset ($\approx${B_ONSET:.0f} G, analytic)"
+        "\n"
+        rf"C: loss-channel transition ($\approx${B_LOSS/1000:.1f} kG, simulated)"
         "\nred arrow: proposed $B$ scan",
         fontsize=7.5, color="#b91c1c", ha="center", va="center")
 
@@ -114,6 +126,9 @@ fig.savefig(os.path.join(out, "ehr-regime-map.pdf"))
 fig.savefig(os.path.join(out, "ehr-regime-map.png"))
 print("H_i at (100 G, 10 mTorr):", round(float(hall(100, 10, MI, SIGMA_IN, VBAR_I)), 3))
 print("H_e at (100 G, 10 mTorr):", round(float(hall(100, 10, ME, SIGMA_EN, VBAR_E)), 1))
-print("B where H_i=1 at 10 mTorr [G]:",
+print("B where H_i=1 at 10 mTorr [G] (analytic, point B):",
       round(float(100 / hall(100, 10, MI, SIGMA_IN, VBAR_I)), 0))
+print("loss-channel transition [G] (simulated, point C):", round(B_LOSS, 0))
+print("ratio C/B:", round(float(B_LOSS / B_ONSET), 1))
+print("H_i at point C:", round(float(hall(B_LOSS, 10, MI, SIGMA_IN, VBAR_I)), 2))
 print("saved ehr-regime-map.pdf / .png")
