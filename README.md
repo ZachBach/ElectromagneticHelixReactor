@@ -145,6 +145,8 @@ Or connect the repo in the [Vercel dashboard](https://vercel.com/new) — no fra
 
 Zachary Auerbach · ORCID [0009-0001-3046-9104](https://orcid.org/0009-0001-3046-9104) · Aurelius Dynamic
 
+[![DOI](https://zenodo.org/badge/1289782745.svg)](https://doi.org/10.5281/zenodo.22977547)
+
 [`CITATION.cff`](CITATION.cff) carries the machine-readable metadata — GitHub renders it as **Cite this repository** in the sidebar, and it covers both this simulator and the companion paper. Cite the paper for the architecture and the four predictions; cite the repository for the simulator, the headless transport code in [`sim/`](sim/README.md), or any number reproduced from a seeded run.
 
 ## License
